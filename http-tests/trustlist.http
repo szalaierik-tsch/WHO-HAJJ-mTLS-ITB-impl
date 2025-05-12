@@ -1,0 +1,7 @@
+###
+# @name = getTrustlist
+GET https://tng-dev.who.int/trustList
+
+###
+# @name = 
+GET https://telex.hu/{{getTrustlist.response.headers.Content-Type}}

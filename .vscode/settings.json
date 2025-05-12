@@ -1,0 +1,39 @@
+{
+    "rest-client.certificates" : {
+        "localhost:8081": {
+            "cert": "/Users/demo/Certificates/client.crt",
+            "key": "/Users/demo/Keys/client.key"
+        },
+        "tng-dev.who.int2": {
+            "cert": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025.pem",
+            "key": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025.key"
+        },
+        "tng-dev.who.int": {
+            "cert": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\client.pem",
+            "key": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\client.key"
+        }
+    },
+    "rest-client.environmentVariables": {
+        "$shared": {
+            "version": "v1",
+            "prodToken": "foo",
+            "nonProdToken": "bar"
+        },
+        "local": {
+            "version": "v2",
+            "host": "localhost",
+            "token": "{{$shared nonProdToken}}",
+            "secretKey": "devSecret"
+        },
+        "production": {
+            "host": "example.com",
+            "token": "{{$shared prodToken}}",
+            "secretKey" : "prodSecret"
+        }
+    },
+    "python.testing.pytestArgs": [
+        "pytest"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

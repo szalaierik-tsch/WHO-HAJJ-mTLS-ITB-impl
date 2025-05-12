@@ -1,0 +1,39 @@
+volumes:
+  gitb-repo:
+  gitb-dbdata:
+services:
+  gitb-redis:
+    image: redis:7.2.5
+    restart: unless-stopped
+  gitb-mysql:
+    image: isaitb/gitb-mysql:latest
+    restart: unless-stopped
+    volumes:
+      - gitb-dbdata:/var/lib/mysql
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=$$MYSQL_ROOT_PASSWORD --execute \"SHOW DATABASES;\""
+      interval: 3s
+      retries: 10
+  gitb-srv:
+    image: isaitb/gitb-srv:latest
+    restart: unless-stopped
+  gitb-ui:
+    image: isaitb/gitb-ui:latest
+    restart: unless-stopped
+    ports:
+      - "9003:9000"
+    volumes:
+      - gitb-repo:/gitb-repository  
+    depends_on:
+      gitb-redis:
+        condition: service_started
+      gitb-mysql:
+        condition: service_healthy
+      gitb-srv:
+        condition: service_started
+  hajj-helper-services:
+    build:
+      context: ./hajj-helper
+    restart: unless-stopped
+    ports:
+      - "9005:8181"
