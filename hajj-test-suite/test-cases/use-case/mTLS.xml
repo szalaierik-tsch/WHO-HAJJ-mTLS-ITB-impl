@@ -11,58 +11,32 @@
         <gitb:actor id="gateway"/>
     </actors>
     <variables>
-        <var type="string" name="serverRoot">
-            <value>$SYSTEM{targetTrustList}</value>
-        </var>
-        <var type="string" name="privateKeyIn">
-            <value>MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg+UN8Hw6cNEPCFc3uRXQkBNii+s4hyVacRjFlevN9wXihRANCAATkMJ2ZoBlY+hY1lzaoJx8XsL9DffAU qXyJmng57jumBopVtyGPEVcCjfTQ36MNsXvPg6xB6K9uFxoE9EQqXMdl</value>
-        </var>
-        <var type="string" name="privateKeyTypeIn">
-            <value>EC</value>
-        </var>
-        <var type="string" name="publicKeyIn">
-            <value>-----BEGIN CERTIFICATE-----
-                MIICMDCCAdagAwIBAgIUDD737RIT3EGC1fl5J/tlCgvwGlMwCgYIKoZIzj0EAwIw
-                dDELMAkGA1UEBhMCWEExFDASBgNVBAgMC1hYQSBDb3VudHJ5MRgwFgYDVQQHDA9Y
-                QSBDYXBpdG9sIENpdHkxDDAKBgNVBAoMA1dITzEMMAoGA1UECwwDUiZEMRkwFwYD
-                VQQDDBBOYXRpb25YQV9UTlBfVExTMB4XDTI0MDgwMjA3MTY0MVoXDTI1MDgwMjA3
-                MTY0MVowdDELMAkGA1UEBhMCWEExFDASBgNVBAgMC1hYQSBDb3VudHJ5MRgwFgYD
-                VQQHDA9YQSBDYXBpdG9sIENpdHkxDDAKBgNVBAoMA1dITzEMMAoGA1UECwwDUiZE
-                MRkwFwYDVQQDDBBOYXRpb25YQV9UTlBfVExTMFkwEwYHKoZIzj0CAQYIKoZIzj0D
-                AQcDQgAE5DCdmaAZWPoWNZc2qCcfF7C/Q33wFKl8iZp4Oe47pgaKVbchjxFXAo30
-                0N+jDbF7z4OsQeivbhcaBPREKlzHZaNGMEQwDgYDVR0PAQH/BAQDAgKEMBMGA1Ud
-                JQQMMAoGCCsGAQUFBwMCMB0GA1UdDgQWBBTj67Di0BfiuIBRC2EDpf8ZCNSafTAK
-                BggqhkjOPQQDAgNIADBFAiEArXzqA55Tp4b7J0LfI5n9moWZDuCJg83SgIsH9klM
-                b9ACIDRL89YX3G+DX3dnOKDsRQO4xUbyedOuFr4bJR4sfSVo
-                -----END CERTIFICATE-----
-            </value>
+        <var type="string" name="environmentSelector">
+            <value>DEV</value>
         </var>
     </variables>
     <steps stopOnError="true">
         <group title="Participant connecting shared service" desc="Testing out TLS Handshake from helper service" collapsed="true">
-            <log>"Using: " || $DOMAIN{helperServiceAddress} || " to access: " || $SYSTEM{targetTrustList}</log>
-            <log>$DOMAIN{trustlistAddressDEV}</log>
-            <log>$SYSTEM{certPassword}</log>
+            <log>"Selected environment is: " || $environmentSelector</log>
+            <log>"logging know DOMAIN properties first:"</log>
+            <log>"$DOMAIN{secureTrustListDev}:" || $DOMAIN{secureTrustListDev}</log>
+            <log>"$DOMAIN{helperServiceAddress}:" || $DOMAIN{helperServiceAddress}</log>
+            <log>"$DOMAIN{trustlistDIDAddressDEV}:" || $DOMAIN{trustlistDIDAddressDEV}</log>
+            <log>"Logging SYSTEM properties now:"</log>
+            <log>"$SYSTEM{endpointAddress}:" || $SYSTEM{endpointAddress}</log>
+            <log>"$SYSTEM{certFile}:" || $SYSTEM{certFile}</log>
+            <log>"$SYSTEM{certPassword}:" || $SYSTEM{certPassword}</log>
+            <log>"$SYSTEM{trustAccessPrivateKey}:" || $SYSTEM{trustAccessPrivateKey}</log>
+            <log>"$SYSTEM{privateKeyType}:" || $SYSTEM{privateKeyType}</log>
             <process id="sendHTTP" handler="$DOMAIN{helperServiceAddress}">
                 <operation>connectToTrustlist</operation>
-                <input name="privateKey">$privateKeyIn</input>
-                <input name="privateKeytype">$privateKeyTypeIn</input>
-                <input name="publicKey">$publicKeyIn</input>
-                <input name="serverAddress">$serverRoot</input>
+                <input name="privateKey">$SYSTEM{trustAccessPrivateKey}</input>
+                <input name="privateKeytype">$SYSTEM{privateKeyType}</input>
+                <input name="publicKey">$SYSTEM{certFile}</input>
+                <input name="serverAddress">$DOMAIN{secureTrustListDev}</input>
             </process>
-<!--            <process id="sendHTTP" desc="Setup configuration" handler="$DOMAIN{processingServiceAddress}" operation="init">-->
-<!--                <input name="endpoint">$DOMAIN{testService}</input>-->
-<!--            </process>-->
-<!--            <send id="sendHTTP" desc="Send a HTTPS request " from="client" to="gateway" handler="$DOMAIN{testService}">-->
-<!--&lt;!&ndash;                <input name="uri">$serverRoot || $listCallPath</input>&ndash;&gt;-->
-<!--&lt;!&ndash;                <input name="method">"GET"</input>&ndash;&gt;-->
-<!--                <input name="messageToSend">"hello"</input>-->
-<!--            </send>-->
-<!--            <send id="step1" desc="Send message" from="client" to="gateway" handler="$DOMAIN{testService}">-->
-<!--                <input name="messageToSend">"hello"</input>-->
-<!--            </send>-->
+
             <log>"Response status was:" || $sendHTTP{status}</log>
-<!--            <log>"Response status was:" || $sendHTTP{response}{status}</log>-->
             <verify id="checkStatusCode" desc="Verify status code is OK" handler="StringValidator">
                 <input name="actualstring">$sendHTTP{status}</input>
                 <input name="expectedstring">"200"</input>
