@@ -23,7 +23,15 @@ services:
     ports:
       - "9003:9000"
     volumes:
-      - gitb-repo:/gitb-repository  
+      - gitb-repo:/gitb-repository
+      - ./initconfig/data/:/gitb-repository/data/in/:rw
+    environment:
+      # This is the key to decrypt the initialisation data archive (see above).
+      - DATA_ARCHIVE_KEY=hajj
+      # Flag to enable the Test Bed's REST API. This can be very useful for efficient test case development.
+      - AUTOMATION_API_ENABLED=true
+      # Activate the generic GITB theme.
+      - THEME=who
     depends_on:
       gitb-redis:
         condition: service_started

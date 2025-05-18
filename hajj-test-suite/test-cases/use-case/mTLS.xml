@@ -6,9 +6,9 @@
         <gitb:documentation import="docs/mTLS.html" />
     </metadata>
     <actors>
-        <gitb:actor id="foreignParticipant"/>
-        <gitb:actor id="sharedService" role="SUT"/>
-        <gitb:actor id="gateway"/>
+        <gitb:actor id="simulatedTrustNetworkParticipant"/>
+        <gitb:actor id="trustNetworkParticipant" role="SUT"/>
+        <gitb:actor id="trustNetworkAnchor"/>
     </actors>
     <variables>
         <var type="string" name="environmentSelector">
@@ -28,6 +28,7 @@
             <log>"$SYSTEM{certPassword}:" || $SYSTEM{certPassword}</log>
             <log>"$SYSTEM{trustAccessPrivateKey}:" || $SYSTEM{trustAccessPrivateKey}</log>
             <log>"$SYSTEM{privateKeyType}:" || $SYSTEM{privateKeyType}</log>
+            
             <process id="sendHTTP" handler="$DOMAIN{helperServiceAddress}">
                 <operation>connectToTrustlist</operation>
                 <input name="privateKey">$SYSTEM{trustAccessPrivateKey}</input>

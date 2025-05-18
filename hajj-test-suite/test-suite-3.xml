@@ -4,6 +4,7 @@
 		<gitb:name>Test Suite to conform to the key sharing and mTLS connection</gitb:name>
 		<gitb:version>1.0</gitb:version>
 		<gitb:description></gitb:description>
+		<gitb:documentation import="docs/mTLS.html" />
 	</metadata>
 	<actors>
 		<gitb:actor id="simulatedTrustNetworkParticipant">
@@ -20,5 +21,6 @@
 		</gitb:actor>
 	</actors>
 
+	<testcase id="get-DID-keys-2"/>
 	<testcase id="test-mTLS-connection"/>
 </testsuite>
