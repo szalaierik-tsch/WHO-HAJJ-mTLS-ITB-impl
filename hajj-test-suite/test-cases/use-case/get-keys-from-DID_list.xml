@@ -1,0 +1,152 @@
+<testcase id="get-DID-keys-2" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <metadata>
+        <gitb:name>Download DID and get key of one participant</gitb:name>
+        <gitb:version>1.0</gitb:version>
+        <gitb:description>This test case will loop through the identification methods and find the one required.</gitb:description>
+    </metadata>
+    <actors>
+        <gitb:actor id="simulatedTrustNetworkParticipant"/>
+        <gitb:actor id="trustNetworkParticipant"/>
+        <gitb:actor id="trustNetworkAnchor" role="SUT"/>
+    </actors>
+    <variables>
+        <var type="string" name="serverRoot">
+            <value>https://tng-cdn-dev.who.int</value>
+        </var>
+        <var type="string" name="listCallPath">
+            <value>/v2/trustlist/did.json</value>
+        </var>
+        <var type="string" name="didIDValidatingExpression">
+            <value>did:web:tng-cdn-dev\.who\.int:v2:trustlist:[\w-]+:\w+:\w+#[\/\w+]+=</value>
+        </var>
+        <var type="string" name="idTokenizingRegEx">
+            <value>did:web:tng-cdn-dev\.who\.int:v2:trustlist:([\w-]+):(\w+):(\w+)#([\/\w+]+)=</value>
+        </var>
+        <var type="string" name="regexForParticipantNameCapture">
+            <value>did:web:tng-cdn-dev\.who\.int:v2:trustlist:[\w-]+:(\w+):\w+#[\/\w+]+=</value>
+        </var>
+        <var type="string" name="queriedDomain">
+            <value>IPS-PILGRIMAGE</value>
+        </var>
+        <var type="string" name="queriedCountry">
+            <value>XG</value>
+        </var>
+        <!-- IPS-PILGRIMAGE:XG:DESC#SJBpqw1gDkg= -->
+    </variables>
+    <steps stopOnError="true">
+        <group title="Get the DIDs" desc="Test getting the DIDs" collapsed="true">
+            <log>"Connecting to:" || $serverRoot || $listCallPath</log>
+            <log>$SYSTEM{participantEndpoint}</log>
+            <send id="getDIDjson" desc="Simple GET DIDs" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+                <input name="uri">$serverRoot || $listCallPath</input>
+                <input name="method">"GET"</input>
+            </send>
+            <verify id="checkStatusCode" desc="Verify status code is OK" handler="StringValidator">
+                <input name="actualstring">$getDIDjson{response}{status}</input>
+                <input name="expectedstring">"200"</input>
+            </verify>
+            <log>"Response status was:" || $getDIDjson{response}{status}</log>
+
+            <process handler="JSONPointerProcessor" operation="process" output="allVerificationMethods">
+                <input name="content">$getDIDjson{response}{body}</input>
+                <input name="pointer">"/verificationMethod"</input>
+            </process>
+
+            <assign to="keyNotFound" type="boolean">true()</assign>
+            <assign to="idExists" type="boolean">true()</assign>
+            <assign to="keyIndex" type="number">0</assign>
+            <assign to="foundDomain">""</assign>
+            <assign to="foundParticipant">""</assign>
+            <assign to="foundKeyType">""</assign>
+            <assign to="foundKeyID">""</assign>
+            <assign to="keyObject" type="string" />
+            <log>"Querying the DID list for the Domain=" || $queriedDomain || " and Country=" || $queriedCountry </log>
+
+            <while desc="Find key in the DID list" hidden="true">
+                <cond>$keyNotFound and $idExists</cond>
+                <do>
+                    <log>"index" || $keyIndex</log>
+                    <process handler="JSONPointerProcessor" operation="process" output="identificationMethodID">
+                        <input name="content">$getDIDjson{response}{body}</input>
+                        <input name="pointer">"/verificationMethod/" || $keyIndex || "/id"</input>
+                    </process>
+                    <assign to="idExists" type="boolean">$identificationMethodID!=""</assign>
+                    <log>"idExists: " || $idExists || " found id: " || $identificationMethodID</log>
+                    <if hidden="true">
+                        <cond>$idExists</cond>
+                        <then hidden="false">
+                            <verify id="keyVerificator" handler="RegExpValidator" desc="Validating the key DID format">
+                                <input name="input">$identificationMethodID</input>
+                                <input name="expression">$didIDValidatingExpression</input>
+                            </verify>
+                            <log>"index+full ID [" || $keyIndex || "]>" || $identificationMethodID</log>
+                            <log>"Was valid ID:" || $keyVerificator</log>
+                            <process id="tokenizeID" handler="RegExpProcessor">
+                                <operation>collect</operation>
+                                <input name="input">$identificationMethodID</input>
+                                <input name="expression">$idTokenizingRegEx</input>
+                            </process>
+                            <assign to="domain">$tokenizeID{output}{0}</assign>
+                            <assign to="participant">$tokenizeID{output}{1}</assign>
+                            <assign to="keyType">$tokenizeID{output}{2}</assign>
+                            <assign to="keyID">$tokenizeID{output}{3}</assign>
+                            <log>"Tokenized: domain=" || $domain || ", participant=" || $participant
+                                || ", keyType=" || $keyType || ", keyID=" || $keyID</log>
+                            <if>
+                                <cond>$domain=$queriedDomain and $participant=$queriedCountry</cond>
+                                <then>
+                                    <assign to="keyNotFound" type="boolean">false</assign>
+                                    <assign to="foundDomain">$tokenizeID{output}{0}</assign>
+                                    <assign to="foundParticipant">$tokenizeID{output}{1}</assign>
+                                    <assign to="foundKeyType">$tokenizeID{output}{2}</assign>
+                                    <assign to="foundKeyID">$tokenizeID{output}{3}</assign>
+
+                                    <process handler="JSONPointerProcessor" operation="process" output="identificationMethod">
+                                        <input name="content">$getDIDjson{response}{body}</input>
+                                        <input name="pointer">"/verificationMethod/" || $keyIndex</input>
+                                    </process>
+
+                                    <assign to="keyObject">$identificationMethod</assign>
+                                </then>
+                            </if>
+                            <assign to="keyIndex">$keyIndex+1</assign>
+                        </then>
+                    </if>
+                </do>
+            </while>
+            <log>"Key found at:" || $keyIndex || " with params:" ||
+                "domain=" || $foundDomain || ", participant=" || $foundParticipant
+                || ", keyType=" || $foundKeyType || ", keyID=" || $foundKeyID</log>
+            <log>"final key object:" || $identificationMethod</log>
+            <if>
+                <cond>$keyNotFound = true</cond>
+                <then>
+                    <exit desc="Key was not found in the list" />
+                </then>
+            </if>
+            <send id="getKeysFromGitHub" desc="Crosscheck key" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+                <input name="uri">$serverRoot || "/v2/trustlist/" || $foundDomain || "/" || $foundParticipant
+                    || "/" || $foundKeyType || "/did.json"</input>
+                <input name="method">"GET"</input>
+            </send>
+            <verify id="checkStatusCode2" desc="Verify status code is OK" handler="StringValidator">
+                <input name="actualstring">$getKeysFromGitHub{response}{status}</input>
+                <input name="expectedstring">"200"</input>
+            </verify>
+            <log>"Response status was:" || $getKeysFromGitHub{response}{status}</log>
+            <log>"Response key is:" || $getKeysFromGitHub{response}{body}</log>
+        </group>
+    </steps>
+    <output>
+        <success>
+            <default>"Test case completed successfully."</default>
+        </success>
+        <failure>
+            <case>
+                <cond>$STEP_STATUS{getDIDjson} = 'ERROR'</cond>
+                <message>"The GET request failed."</message>
+            </case>
+            <default>"Test case failed. Please check the failed step's report for more information and the test log."</default>
+        </failure>
+    </output>    
+</testcase>
