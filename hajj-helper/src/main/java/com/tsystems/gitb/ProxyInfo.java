@@ -1,4 +1,4 @@
-package tsystems.com.gitb;
+package com.tsystems.gitb;
 
 import org.apache.cxf.configuration.security.ProxyAuthorizationPolicy;
 import org.apache.cxf.transport.http.HTTPConduit;

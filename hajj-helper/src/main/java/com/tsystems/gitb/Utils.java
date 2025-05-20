@@ -1,4 +1,4 @@
-package tsystems.com.gitb;
+package com.tsystems.gitb;
 
 import com.gitb.core.*;
 import com.gitb.tr.*;
