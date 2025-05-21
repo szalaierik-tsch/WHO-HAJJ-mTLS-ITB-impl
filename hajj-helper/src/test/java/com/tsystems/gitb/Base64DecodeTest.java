@@ -1,6 +1,15 @@
 package com.tsystems.gitb;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.util.Assert;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -31,46 +40,24 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collection;
-
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = Base64DecodeTest.ConfigHolder.class)
+@TestPropertySource(locations =
+        {"classpath:application-test.properties",
+        "classpath:application-test-local.properties"})
 public class Base64DecodeTest {
-
-    @Test
-    public void replaceNewLineInKey() {
-        String key = "-----BEGIN PRIVATE KEY-----\n" +
-                "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg+UN8Hw6cNEPCFc3u\n" +
-                "RXQkBNii+s4hyVacRjFlevN9wXihRANCAATkMJ2ZoBlY+hY1lzaoJx8XsL9DffAU\n" +
-                "qXyJmng57jumBopVtyGPEVcCjfTQ36MNsXvPg6xB6K9uFxoE9EQqXMdl\n" +
-                "-----END PRIVATE KEY-----";
-        String privateString = new String(key.getBytes(), StandardCharsets.UTF_8)
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s","");
-        System.out.println(privateString);
-
-        privateString = key
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s","");
-        System.out.println(privateString);
-
-    }
-
-    @Test
-    public void determineCharValueOfInteger() {
-        int i = 10;
-        char c = (char) i;
-        System.out.println("char value of 10: " + c + "::");
-    }
+    public static class ConfigHolder{} //This class is needed only to make the @Value injections work without booting the app.
+    @Value("${hajjhelper.mtls.privatekey.path}")
+    private String privateKeyFileLocation;
+    @Value("${hajjhelper.mtls.privatekey.type}")
+    private String privateKeyType;
+    @Value("${hajjhelper.mtls.publiccrt.path}")
+    private String publicKeyCertFileLocation;
 
     @Test
     public void loadFilesAndDecode() throws IOException, CertificateException, NoSuchAlgorithmException, InvalidKeySpecException, KeyStoreException, UnrecoverableKeyException, KeyManagementException, InterruptedException {
-        String privateKeyPath = "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025-2.key";
-        String publicKeyPath = "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025.pem";
-//        String privateKeyPath = "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\client.key";
-//        String publicKeyPath = "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\client.pem";
-
-        final byte[] publicData = Files.readAllBytes(Path.of(publicKeyPath));
-        final byte[] privateData = Files.readAllBytes(Path.of(privateKeyPath));
+        final byte[] publicData = Files.readAllBytes(Path.of(this.publicKeyCertFileLocation));
+        final byte[] privateData = Files.readAllBytes(Path.of(this.privateKeyFileLocation));
 
         String privateString = new String(privateData, StandardCharsets.UTF_8)
                 .replace("-----BEGIN PRIVATE KEY-----", "")
@@ -85,7 +72,7 @@ public class Base64DecodeTest {
                 new ByteArrayInputStream(publicData));
 
         //EC is for the
-        Key key = KeyFactory.getInstance("EC").generatePrivate(new PKCS8EncodedKeySpec(encoded));
+        Key key = KeyFactory.getInstance(this.privateKeyType).generatePrivate(new PKCS8EncodedKeySpec(encoded));
 //        Key key = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(encoded));
 
         KeyStore clientKeyStore = KeyStore.getInstance("jks");

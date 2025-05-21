@@ -103,19 +103,7 @@ public class ProcessingServiceImpl implements ProcessingService {
                                                String privateKeyType, String sutAddress)
             throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException,
             UnrecoverableKeyException, InvalidKeySpecException, KeyManagementException {
-        /*
-        String privateKeyPath = "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025-2.key";
-        String publicKeyPath = "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025.pem";
-        final byte[] publicData = Files.readAllBytes(Path.of(publicKeyPath));
-        final byte[] privateData = Files.readAllBytes(Path.of(privateKeyPath));
 
-        String privateString = new String(privateData, Charset.defaultCharset())
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replaceAll(System.lineSeparator(), "")
-                .replace("-----END PRIVATE KEY-----", "");
-
-        System.out.println("private string:\n" + privateString);
-         */
         String privateString = new String(privateKey.getBytes(), StandardCharsets.UTF_8)
                 .replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
@@ -155,8 +143,6 @@ public class ProcessingServiceImpl implements ProcessingService {
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(keyManagerFactory.getKeyManagers(), acceptAllTrustManager, new java.security.SecureRandom());
-
-        //https://localhost:8443/
 
         HttpClient client = HttpClient.newBuilder()
                 .sslContext(sslContext)

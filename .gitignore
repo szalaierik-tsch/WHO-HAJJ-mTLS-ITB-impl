@@ -22,3 +22,5 @@
 hs_err_pid*
 replay_pid*
 /hajj-helper/.idea
+/hajj-helper/target/classes
+/hajj-helper/target/test-classes
