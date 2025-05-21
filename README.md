@@ -45,9 +45,9 @@ More details at the bottom.
 
 ## Project overview
 ### Architecture of this setup
-![mTLS test architecture](github-resources/images/mTLS ITB implementation Architecture.drawio.png)
+![mTLS test architecture](github-resources/images/mTLS_ITB_implementation_Architecture.drawio.png)
 ### Diagram example of the ITB setup
-![Diagram](github-resources/images/ITB Initial Domain Configuration Diagram.drawio.png)
+![Diagram](github-resources/images/ITB_Initial_Domain_Configuration_Diagram.drawio.png)
 
 # Links and further reading
 ## Introduction to the ITB
