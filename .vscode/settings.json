@@ -1,16 +1,16 @@
 {
     "rest-client.certificates" : {
         "localhost:8081": {
-            "cert": "/Users/demo/Certificates/client.crt",
-            "key": "/Users/demo/Keys/client.key"
+            "cert": "/Users/exmaple/Certificates/client.crt",
+            "key": "/Users/example/Keys/client.key"
         },
         "tng-dev.who.int2": {
-            "cert": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025.pem",
-            "key": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\TLS-XA-2025.key"
+            "cert": "/Users/exmaple/Certificates/client.crt",
+            "key": "/Users/example/Keys/client.key"
         },
         "tng-dev.who.int": {
-            "cert": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\client.pem",
-            "key": "C:\\Development\\WHOProjects\\ExampleKeys\\generated\\client.key"
+            "cert": "/Users/exmaple/Certificates/client.crt",
+            "key": "/Users/example/Keys/client.key"
         }
     },
     "rest-client.environmentVariables": {

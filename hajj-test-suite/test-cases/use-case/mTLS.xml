@@ -24,10 +24,6 @@
             <log>"$DOMAIN{trustlistDIDAddressDEV}:" || $DOMAIN{trustlistDIDAddressDEV}</log>
             <log>"Logging SYSTEM properties now:"</log>
             <log>"$SYSTEM{endpointAddress}:" || $SYSTEM{endpointAddress}</log>
-            <log>"$SYSTEM{certFile}:" || $SYSTEM{certFile}</log>
-            <log>"$SYSTEM{certPassword}:" || $SYSTEM{certPassword}</log>
-            <log>"$SYSTEM{trustAccessPrivateKey}:" || $SYSTEM{trustAccessPrivateKey}</log>
-            <log>"$SYSTEM{privateKeyType}:" || $SYSTEM{privateKeyType}</log>
             
             <process id="sendHTTP" handler="$DOMAIN{helperServiceAddress}">
                 <operation>connectToTrustlist</operation>

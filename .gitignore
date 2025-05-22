@@ -24,3 +24,4 @@ replay_pid*
 /hajj-helper/.idea
 /hajj-helper/target/classes
 /hajj-helper/target/test-classes
+/hajj-helper/src/test/resources/application-test-local.properties
