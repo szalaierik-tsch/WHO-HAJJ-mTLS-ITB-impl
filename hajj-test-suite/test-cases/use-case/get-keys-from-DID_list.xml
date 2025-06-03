@@ -79,7 +79,7 @@
                                 <input name="input">$identificationMethodID</input>
                                 <input name="expression">$didIDValidatingExpression</input>
                             </verify>
-                            <log>"index+full ID [" || $keyIndex || "]>" || $identificationMethodID</log>
+                            <log>"index+full ID [" || $keyIndex || "]" || $identificationMethodID</log>
                             <log>"Was valid ID:" || $keyVerificator</log>
                             <process id="tokenizeID" handler="RegExpProcessor">
                                 <operation>collect</operation>
