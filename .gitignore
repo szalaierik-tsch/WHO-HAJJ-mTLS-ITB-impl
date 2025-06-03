@@ -28,3 +28,4 @@ replay_pid*
 /hajj-helper/src/test/resources/application-test-local.properties
 
 /.vscode/settings.local.json
+/hajj-helper/*response-body.txt
