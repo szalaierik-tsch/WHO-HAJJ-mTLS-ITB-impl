@@ -11,42 +11,36 @@
     </actors>
     <variables>
         <var type="string" name="publicKey">
+            <!--This key is used to access the backend services for validation.-->
             <value>-----BEGIN CERTIFICATE-----\nMIICLjCCAdOgAwIBAgIUWh6ECUYZaslC/Ho8dKULnzn/5t8wCgYIKoZIzj0EAwIw\nfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29yMRUwEwYDVQQHDAxLdWFs\nYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQwEgYDVQQLDAtFbmdpbmVl\ncmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMB4XDTI0MDExOTEwNTYyNVoX\nDTI1MDExODEwNTYyNVowfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29y\nMRUwEwYDVQQHDAxLdWFsYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQw\nEgYDVQQLDAtFbmdpbmVlcmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7reC2FUoGVGzvByhncV3q6XJksKxjJ1o\nXMlB6CzVVVJbnP0r1KJfr2ubOk81em/bYcjbhU1dziirVOB9RWxtUqMxMC8wDgYD\nVR0PAQH/BAQDAgeAMB0GA1UdDgQWBBTx38qzxO0haO3lqcxPY8X5wDNxxjAKBggq\nhkjOPQQDAgNJADBGAiEA+beTg/VOtm4oInJleO7hXnosUpQbF9gOO4TQD8iBX9wC\nIQDq50Faaah56SsFyY2DE2QZ8fDBPH02msLz7S1XbVyu/A==\n-----END CERTIFICATE-----\n</value>
         </var>
-        <var type="string" name="inputQR">
-            <value>HC1:6BF2Y2:9Q6WQC403DEJMF7+0E%3:8NBGGLVU8+A+S2FQR5Q91P985J4X9TMK3F97.ST+KI:P2BR9YBHOFOPM68FN L 24--U8-0OJFSFI5BFT54PDWVGN-BOFOV0HFH:NRK8S.DMMS7$2I*H:7NT4GZ8R$%N$2UYOTU+NA/DK 0CATN5T6N1M7N SJKUS-KTHBTS.LDZ00YJP2FY%HTD5D:B POJ3505WRJC4%I*G1+NB36B.6WBWPHOMUYAH/S:82SGMMDJLOEZ47PGH6N0YO0W*0PC2IVS0EG WCP6GNLARXHUM9*ZJ93JMDKNC5BWCJZF+4P3-FNI80PMN8JD3MNCNX/P2KRAQSZ CCNHDCQWJNCBL591U4NUJ4XF1UFIWTU*4T*-90MRO.S%YKPNHW Q/TFT1B*D1ZGT/80P89-8AS92%Q8EEMZK9MBR.RQT.3B/AA4UJRA*R2IPICS8412O:B1T0WLJ4*KQHCV7O9SEJ2ACNDI6BA80W1K3AHUXUT-HGGPG6O1%2JX38OT-B2$RS*0IV12BHD+3M0ANR-HF9RXAVPASN:39+5E6G$1LN2EB*HR0O WVR8OE3AA6W%CBT5G.ZU 03GKFX+EWOR SJ:VO DTI.HTXT97Q 2EP7WN3U:CV.BSQRK</value>
+        <var type="string" name="validatorBackendEndpoint">
+            <value>https://api.gdhcn-validator.net/v2/validateCwt</value>
         </var>
-        <var type="string" name="inputPIN">
-            <value>1234</value>
-        </var>
+        <var type="string" name="inputQR" />
+        <var type="string" name="inputPIN" />
     </variables>
     <steps>
-        <group hidden="true">
-            <log>"$inputQR:" || $inputQR</log>
-            <log>"$inputPIN:" || $inputPIN</log>
-        </group>
-        <group stopOnError="false" desc="Validate QR code from manual input">
-            <!-- <assign to="inputQR">"Paste your QR code here"</assign> -->
-            <interact>
-                <request desc="Enter the QR code you want to validate"  inputType="MULTILINE_TEXT">$inputQR</request>
+        <group stopOnError="true" title="Validate QR code from manual input">
+            <interact inputTitle="Enter the QR code you want to validate">
+                <request desc="QR Code"  inputType="MULTILINE_TEXT">$inputQR</request>
             </interact>
             <log>"inputQR:" || $inputQR</log>
             <assign to="validateQRCodeHeaders{Content-Type}">"application/json"</assign>
-            <assign to="validationBody">'{"qrCodeContent"="' || $inputQR || '", "publicKey"="' || $publicKey || '"}'</assign>
-            <assign to="validationBody">'{"qrCodeContent":"HC1:6BF2Y2:9Q6WQC403DEJMF7+0E%3:8NBGGLVU8+A+S2FQR5Q91P985J4X9TMK3F97.ST+KI:P2BR9YBHOFOPM68FN L 24--U8-0OJFSFI5BFT54PDWVGN-BOFOV0HFH:NRK8S.DMMS7$2I*H:7NT4GZ8R$%N$2UYOTU+NA/DK 0CATN5T6N1M7N SJKUS-KTHBTS.LDZ00YJP2FY%HTD5D:B POJ3505WRJC4%I*G1+NB36B.6WBWPHOMUYAH/S:82SGMMDJLOEZ47PGH6N0YO0W*0PC2IVS0EG WCP6GNLARXHUM9*ZJ93JMDKNC5BWCJZF+4P3-FNI80PMN8JD3MNCNX/P2KRAQSZ CCNHDCQWJNCBL591U4NUJ4XF1UFIWTU*4T*-90MRO.S%YKPNHW Q/TFT1B*D1ZGT/80P89-8AS92%Q8EEMZK9MBR.RQT.3B/AA4UJRA*R2IPICS8412O:B1T0WLJ4*KQHCV7O9SEJ2ACNDI6BA80W1K3AHUXUT-HGGPG6O1%2JX38OT-B2$RS*0IV12BHD+3M0ANR-HF9RXAVPASN:39+5E6G$1LN2EB*HR0O WVR8OE3AA6W%CBT5G.ZU 03GKFX+EWOR SJ:VO DTI.HTXT97Q 2EP7WN3U:CV.BSQRK","publicKey":"-----BEGIN CERTIFICATE-----\nMIICLjCCAdOgAwIBAgIUWh6ECUYZaslC/Ho8dKULnzn/5t8wCgYIKoZIzj0EAwIw\nfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29yMRUwEwYDVQQHDAxLdWFs\nYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQwEgYDVQQLDAtFbmdpbmVl\ncmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMB4XDTI0MDExOTEwNTYyNVoX\nDTI1MDExODEwNTYyNVowfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29y\nMRUwEwYDVQQHDAxLdWFsYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQw\nEgYDVQQLDAtFbmdpbmVlcmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7reC2FUoGVGzvByhncV3q6XJksKxjJ1o\nXMlB6CzVVVJbnP0r1KJfr2ubOk81em/bYcjbhU1dziirVOB9RWxtUqMxMC8wDgYD\nVR0PAQH/BAQDAgeAMB0GA1UdDgQWBBTx38qzxO0haO3lqcxPY8X5wDNxxjAKBggq\nhkjOPQQDAgNJADBGAiEA+beTg/VOtm4oInJleO7hXnosUpQbF9gOO4TQD8iBX9wC\nIQDq50Faaah56SsFyY2DE2QZ8fDBPH02msLz7S1XbVyu/A==\n-----END CERTIFICATE-----\n"}'</assign>
-            <log>"validationBody:" || $validationBody</log>
+            <assign to="validationBody">'{"qrCodeContent":"' || $inputQR || '","publicKey":"' || $publicKey || '"}'</assign>
+            <log>"$validationBody:" || $validationBody</log>
             <send id="validateQRCode" desc="Call validator with QR body" handler="HttpMessagingV2" 
                 from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
-                <input name="uri">"https://api.gdhcn-validator.net/v2/validateCwt"</input>
+                <input name="uri">$validatorBackendEndpoint</input>
                 <input name="method">"POST"</input>
                 <input name="body">$validationBody</input>
                 <input name="headers">$validateQRCodeHeaders</input>
             </send>
-            <log>"$validateQRCode{response}{status}" || $validateQRCode{response}{status}</log>
-            <log>"$validateQRCode{response}{body}" || $validateQRCode{response}{body}</log>
         </group>
 
         <group hidden="true" desc="Extract validation results and display">
+            <log>"$validateQRCode{response}{status}" || $validateQRCode{response}{status}</log>
+            <log>"$validateQRCode{response}{body}" || $validateQRCode{response}{body}</log>
             <process handler="JSONPointerProcessor" operation="process" output="decodeBase45Description">
                 <input name="content">$validateQRCode{response}{body}</input>
                 <input name="pointer">"/validationStatus/1/description"</input>
@@ -119,7 +113,13 @@
                 <input name="content">$validateQRCode{response}{body}</input>
                 <input name="pointer">"/validationStatus/9/status"</input>
             </process>
-            <interact desc="QR validation results">
+
+            <process handler="JSONPointerProcessor" operation="process" output="extractSmartHealthLink">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/shLinkContent/url"</input>
+            </process>
+
+            <interact inputTitle="QR validation results">
                 <instruct desc="Deconding QR...">$decodeBase45Description || ":" || $decodeBase45Status</instruct>
                 <instruct desc="Decompressing QR...">$decompressingQRPayloadDescription || ":" || $decompressingQRPayloadStatus</instruct>
                 <instruct desc="Converting CWT...">$convertingPayload2CWTDescription || ":" || $convertingPayload2CWTStatus</instruct>
@@ -129,13 +129,11 @@
                 <instruct desc="Validating signature...">$validatingSignatureDescription || ":" || $validatingSignatureStatus</instruct>
                 <instruct desc="Extracting SHL...">$extractingSHLDescription || ":" || $extractingSHLStatus</instruct>
                 <instruct desc="Deconding QR...">$verifyingSHLDescription || ":" || $verifyingSHLStatus</instruct>
+                <instruct desc="The resulting Smart Health Link is:" mimeType="text/plain">$extractSmartHealthLink</instruct>
             </interact>
         </group>
 
-        <group stopOnError="false" desc="Enter PIN and get the links">
-            <log>"$validateQRCode{response}{status}" || $validateQRCode{response}{status}</log>
-            <log>"$validateQRCode{response}{body}" || $validateQRCode{response}{body}</log>
-
+        <group stopOnError="true" title="Enter PIN and get the links">
             <interact>
                 <request desc="Enter the PIN code to access the report">$inputPIN</request>
             </interact>
@@ -145,7 +143,7 @@
             <log>"sendPinBody:" || $sendPinBody</log>
             <send id="sendPin" desc="Call validator with PIN" handler="HttpMessagingV2" 
                 from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
-                <input name="uri">"https://mycloud-b0e684dc-3705-11ec-8d3d-0242ac130003.kpisoft.com/epms/noAuth/v2/shlink/NjdmZTQwYjA3ZDAzOTI0NTdmOTRlNzdl"</input>
+                <input name="uri">$extractSmartHealthLink</input>
                 <input name="method">"POST"</input>
                 <input name="body">$sendPinBody</input>
                 <input name="headers">$sendPinHeaders</input>
@@ -155,11 +153,6 @@
         <group hidden="true" desc="Extract links from PIN response">
             <log>"$sendPin{response}{status}:" || $sendPin{response}{status}</log>
             <log>"$sendPin{response}{body}:" || $sendPin{response}{body}</log>
-            <process handler="JSONPointerProcessor" operation="process" output="pinResponseJSONExperiment">
-                <input name="content">$sendPin{response}{body}</input>
-                <input name="pointer">"/entry"</input>
-            </process>
-            <log>"$pinResponseJSONExperiment:" || $pinResponseJSONExperiment</log>
         
             <process handler="JSONPointerProcessor" operation="process" output="reportLink">
                 <input name="content">$sendPin{response}{body}</input>
@@ -173,12 +166,12 @@
                 <input name="content">$sendPin{response}{body}</input>
                 <input name="pointer">"/entry/2/resource/content/0/attachment/url"</input>
             </process>
-        </group>
-
-        <group desc="Get the report documents">
             <log>"$reportLink:" || $reportLink</log>
             <log>"$jsonContentLink:" || $jsonContentLink</log>
             <log>"$detachedContentLink:" || $detachedContentLink</log>
+        </group>
+
+        <group title="Get the report documents">
             <send id="getPDFreport" desc="Get the PDF report" handler="HttpMessagingV2" 
                 from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
                 <input name="uri">$reportLink</input>
@@ -194,10 +187,16 @@
                 <input name="uri">$detachedContentLink</input>
                 <input name="method">"GET"</input>
             </send>
-            <interact>
-                <instruct desc="Downloading the PDF report was: ">$getPDFreport{response}{status}</instruct>
-                <instruct desc="Downloading the JSON report was: ">$getJSONreport{response}{status}</instruct>
-                <instruct desc="Downloading the detached report was: ">$getDetachedContent{response}{status}</instruct>
+
+            <log>"$getJSONreport{response}{body}" || $getJSONreport{response}{body}</log>
+            <log>"$getDetachedContent{response}{body}" || $getDetachedContent{response}{body}</log>
+            <interact inputTitle="Status of the downloaded documents">
+                <instruct desc="Downloading the PDF report stauts: ">$getPDFreport{response}{status}</instruct>
+                <instruct desc="The PDF file: " mimeType="application/pdf">$getPDFreport{response}{body}</instruct>
+                <instruct desc="Downloading the JSON report status: ">$getJSONreport{response}{status}</instruct>
+                <instruct desc="The JSON file: " mimeType="application/json">$getJSONreport{response}{body}</instruct>
+                <instruct desc="Downloading the detached report status: ">$getDetachedContent{response}{status}</instruct>
+                <instruct desc="The detached JSON file: " mimeType="application/json">$getDetachedContent{response}{body}</instruct>
             </interact>
         </group>
     </steps>
