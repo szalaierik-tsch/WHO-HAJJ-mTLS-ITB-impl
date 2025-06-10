@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuite id="ts-did-analysis-2" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<metadata>
-		<gitb:name>Test Suite to conform to the key sharing and mTLS connection</gitb:name>
+		<gitb:name>First test suite to get into the Interoperability Test Bed.</gitb:name>
 		<gitb:version>1.0</gitb:version>
 		<gitb:description></gitb:description>
 		<gitb:documentation import="docs/mTLS.html" />
