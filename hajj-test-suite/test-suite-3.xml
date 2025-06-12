@@ -19,6 +19,14 @@
 			<gitb:name>Trust Network Anchor</gitb:name>
 			<gitb:desc>Trust Network Anchor which receives and distributes PKI-material within a Trust Network. Also called the Gateway of the key network to manage keys. Also called Trust Network Gateway (TNG).</gitb:desc>
 		</gitb:actor>
+		<gitb:actor id="qrCodeHolder">
+			<gitb:name>QR Code Holder</gitb:name>
+			<gitb:desc>A person who holds a QR code that should be validated by the GDHCN backend.</gitb:desc>
+		</gitb:actor>
+		<gitb:actor id="qrCodeValidator">
+			<gitb:name>QR Code Validator</gitb:name>
+			<gitb:desc>A (backend) system that validates QR codes.</gitb:desc>
+		</gitb:actor>
 	</actors>
 
 	<testcase id="get-DID-keys-2"/>

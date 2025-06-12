@@ -5,9 +5,8 @@
         <gitb:description>As a participant I want to validate a QR code.</gitb:description>
     </metadata>
     <actors>
-        <gitb:actor id="simulatedTrustNetworkParticipant"/>
-        <gitb:actor id="trustNetworkParticipant"/>
-        <gitb:actor id="trustNetworkAnchor" role="SUT"/>
+        <gitb:actor id="qrCodeValidator"/>
+        <gitb:actor id="qrCodeHolder" role="SUT"/>
     </actors>
     <variables>
         <var type="string" name="publicKey">
@@ -22,7 +21,7 @@
     </variables>
     <steps>
         <group stopOnError="true" title="Validate QR code from manual input">
-            <interact inputTitle="Enter the QR code you want to validate">
+            <interact hidden="true" inputTitle="Enter the QR code you want to validate">
                 <request desc="QR Code"  inputType="MULTILINE_TEXT">$inputQR</request>
             </interact>
             <log>"inputQR:" || $inputQR</log>
@@ -30,7 +29,7 @@
             <assign to="validationBody">'{"qrCodeContent":"' || $inputQR || '","publicKey":"' || $publicKey || '"}'</assign>
             <log>"$validationBody:" || $validationBody</log>
             <send id="validateQRCode" desc="Call validator with QR body" handler="HttpMessagingV2" 
-                from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
+                from="qrCodeHolder" to="qrCodeValidator">
                 <input name="uri">$validatorBackendEndpoint</input>
                 <input name="method">"POST"</input>
                 <input name="body">$validationBody</input>
@@ -132,17 +131,19 @@
                 <instruct desc="The resulting Smart Health Link is:" mimeType="text/plain">$extractSmartHealthLink</instruct>
             </interact>
         </group>
-
-        <group stopOnError="true" title="Enter PIN and get the links">
-            <interact>
+        <group title="Entering pin">
+            <interact hidden="true">
                 <request desc="Enter the PIN code to access the report">$inputPIN</request>
             </interact>
+        </group>
+
+        <group stopOnError="true" title="Enter PIN and get the links">
 
             <assign to="sendPinHeaders{Content-Type}">"application/json"</assign>
             <assign to="sendPinBody">'{"recipient":"https://gdhcn-validator.net/","passcode":"' || $inputPIN || '"}'</assign>
             <log>"sendPinBody:" || $sendPinBody</log>
             <send id="sendPin" desc="Call validator with PIN" handler="HttpMessagingV2" 
-                from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
+                from="qrCodeHolder" to="qrCodeValidator">
                 <input name="uri">$extractSmartHealthLink</input>
                 <input name="method">"POST"</input>
                 <input name="body">$sendPinBody</input>
@@ -173,24 +174,24 @@
 
         <group title="Get the report documents">
             <send id="getPDFreport" desc="Get the PDF report" handler="HttpMessagingV2" 
-                from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
+                from="qrCodeHolder" to="qrCodeValidator">
                 <input name="uri">$reportLink</input>
                 <input name="method">"GET"</input>
             </send>
             <send id="getJSONreport" desc="Get the JSON report" handler="HttpMessagingV2" 
-                from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
+                from="qrCodeHolder" to="qrCodeValidator">
                 <input name="uri">$jsonContentLink</input>
                 <input name="method">"GET"</input>
             </send>
             <send id="getDetachedContent" desc="Get the PDF report" handler="HttpMessagingV2" 
-                from="simulatedTrustNetworkParticipant" to="trustNetworkParticipant">
+                from="qrCodeHolder" to="qrCodeValidator">
                 <input name="uri">$detachedContentLink</input>
                 <input name="method">"GET"</input>
             </send>
 
             <log>"$getJSONreport{response}{body}" || $getJSONreport{response}{body}</log>
             <log>"$getDetachedContent{response}{body}" || $getDetachedContent{response}{body}</log>
-            <interact inputTitle="Status of the downloaded documents">
+            <interact hidden="true" inputTitle="Status of the downloaded documents">
                 <instruct desc="Downloading the PDF report stauts: ">$getPDFreport{response}{status}</instruct>
                 <instruct desc="The PDF file: " mimeType="application/pdf">$getPDFreport{response}{body}</instruct>
                 <instruct desc="Downloading the JSON report status: ">$getJSONreport{response}{status}</instruct>
