@@ -1,5 +1,8 @@
 package com.tsystems.gitb;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitb.core.ValueEmbeddingEnumeration;
 import com.gitb.ps.Void;
 import com.gitb.ps.*;
@@ -27,8 +30,12 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Spring component that realises the processing service.
@@ -38,6 +45,10 @@ public class ProcessingServiceImpl implements ProcessingService {
 
     /** Logger. */
     private static final Logger LOG = LoggerFactory.getLogger(ProcessingServiceImpl.class);
+
+    static final Pattern VALIDATION_METHOD_ID_PATTERN = Pattern.compile(
+            "did:web:tng-cdn-dev\\.who\\.int:v2:trustlist:([\\w-]+):(\\w+):(\\w+)#([/\\w+=]+)"
+    );
 
     @Autowired
     private Utils utils = null;
@@ -72,27 +83,78 @@ public class ProcessingServiceImpl implements ProcessingService {
     @Override
     public ProcessResponse process(ProcessRequest processRequest) {
         LOG.info("Received 'process' command from test bed for session [{}]", processRequest.getSessionId());
-        ProcessResponse response = new ProcessResponse();
         String operation = processRequest.getOperation();
         if (operation == null) {
             throw new IllegalArgumentException("No processing operation provided");
         }
-        if (!"connectToTrustlist".equals(operation)) {
-            throw new IllegalArgumentException(String.format("Unexpected operation [%s].", operation));
+        switch (operation) {
+            case "connectToTrustlist": return getHttpResponse(processRequest);
+            case "processDIDjson": return processDIDJSON(processRequest);
+            default: throw new IllegalArgumentException(String.format("Unexpected operation [%s].", operation));
+        }
+    }
+
+    private ProcessResponse processDIDJSON(ProcessRequest processRequest) {
+        ProcessResponse processingResponse = new ProcessResponse();
+        String didJSON = utils.getRequiredString(processRequest.getInput(), "DIDjson");
+        String queriedDomain = utils.getRequiredString(processRequest.getInput(), "queriedDomain");
+        String queriedCountry = utils.getRequiredString(processRequest.getInput(), "queriedCountry");
+        LOG.info("Got DID JSON");
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = null;
+        try {
+            root = mapper.readTree(didJSON);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
+        JsonNode verificationMethods = root.path("verificationMethod");
+
+        for (JsonNode method : verificationMethods) {
+            String id = method.path("id").asText();
+            Matcher matcher = VALIDATION_METHOD_ID_PATTERN.matcher(id);
+
+            if (matcher.matches()) {
+                if(queriedCountry.equals(matcher.group(2)) &&
+                    queriedDomain.equals(matcher.group(1))) {
+                    String issuerType = matcher.group(1);
+                    String countryCode = matcher.group(2);
+                    String keyType = matcher.group(3);
+                    String keyId = matcher.group(4);
+
+                    LOG.debug("Found issuer type [{}], country code [{}], key type [{}] and key ID [{}].",
+                            issuerType, countryCode, keyType, keyId);
+                    processingResponse.setReport(utils.createReport(TestResultType.SUCCESS));
+                    processingResponse.getOutput().add(utils.createAnyContentSimple("keyType", keyType, ValueEmbeddingEnumeration.STRING));
+                    processingResponse.getOutput().add(utils.createAnyContentSimple("output", "success", ValueEmbeddingEnumeration.STRING));
+                }
+            } else {
+                LOG.error("ID format did not match.");
+                processingResponse.setReport(utils.createReport(TestResultType.FAILURE));
+                processingResponse.getOutput().add(utils.createAnyContentSimple("output", "failure", ValueEmbeddingEnumeration.STRING));
+                processingResponse.getOutput().add(utils.createAnyContentSimple("errorMessage", "ID format did not match.", ValueEmbeddingEnumeration.STRING));
+            }
+        }
+
+        LOG.info("Completed operation [{}].", "processDIDJSON");
+        return processingResponse;
+    }
+
+    private ProcessResponse getHttpResponse(ProcessRequest processRequest) {
         String privateKey = utils.getRequiredString(processRequest.getInput(), "privateKey");
         String privateKeyType = utils.getRequiredString(processRequest.getInput(), "privateKeytype");
         String publicKey = utils.getRequiredString(processRequest.getInput(), "publicKey");
         String serverAddress = utils.getRequiredString(processRequest.getInput(), "serverAddress");
 
+        ProcessResponse processingResponse = new ProcessResponse();
         try {
             var httpResponse = this.makeHandshake(privateKey, publicKey, privateKeyType, serverAddress);
-            response.setReport(utils.createReport(TestResultType.SUCCESS));
-            response.getOutput().add(utils.createAnyContentSimple("output", "success", ValueEmbeddingEnumeration.STRING));
-            response.getOutput().add(utils.createAnyContentSimple("status", String.valueOf(httpResponse.statusCode()), ValueEmbeddingEnumeration.STRING));
-            LOG.info("Completed operation [{}].", operation);
-            return response;
+            processingResponse.setReport(utils.createReport(TestResultType.SUCCESS));
+            processingResponse.getOutput().add(utils.createAnyContentSimple("output", "success", ValueEmbeddingEnumeration.STRING));
+            processingResponse.getOutput().add(utils.createAnyContentSimple("status", String.valueOf(httpResponse.statusCode()), ValueEmbeddingEnumeration.STRING));
+            LOG.info("Completed operation [{}].", "getHttpResponse");
+            return processingResponse;
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException |
                  UnrecoverableKeyException | InvalidKeySpecException | KeyManagementException e) {
             throw new RuntimeException(e);

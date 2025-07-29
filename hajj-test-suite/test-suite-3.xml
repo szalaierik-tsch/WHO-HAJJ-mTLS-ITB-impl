@@ -29,6 +29,7 @@
 		</gitb:actor>
 	</actors>
 
+	<testcase id="get-DID-keys"/>
 	<testcase id="get-DID-keys-2"/>
 	<testcase id="test-mTLS-connection"/>
 	<testcase id="validate-QR-input" />

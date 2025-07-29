@@ -1,14 +1,16 @@
 <testcase id="get-DID-keys-2" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <metadata>
-        <gitb:name>Download DID and get key of one participant</gitb:name>
+        <gitb:name>Download DID and get key of one participant (pure XML solution).</gitb:name>
         <gitb:version>1.0</gitb:version>
         <gitb:description>This test case will loop through the identification methods and find the one required.</gitb:description>
     </metadata>
     <actors>
         <gitb:actor id="simulatedTrustNetworkParticipant"/>
-        <gitb:actor id="trustNetworkParticipant"/>
         <gitb:actor id="trustNetworkAnchor" role="SUT"/>
     </actors>
+    <imports>
+        <artifact name="DIDschema">schemas/DID list JSON.schema.json</artifact>
+    </imports>
     <variables>
         <var type="string" name="serverRoot">
             <value>https://tng-cdn-dev.who.int</value>
@@ -31,13 +33,19 @@
         <var type="string" name="queriedCountry">
             <value>XG</value>
         </var>
+        <!--
+        <var type="string" name="DIDschema">
+            <value>{"$schema":"http://json-schema.org/draft-07/schema#","$id":"https://smart.who.int/trust/trustlist-embedded.schema.json","title":"WHO DID Trustlist v2 (Embedded)","type":"object","required":["@context","id","verificationMethod"],"properties":{"@context":{"type":"array","items":{"type":"string","enum":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]},"minItems":2},"id":{"type":"string","pattern":"^did:web:.*"},"controller":{"type":"string","pattern":"^did:web:.*"},"verificationMethod":{"type":"array","items":{"type":"object","required":["id","type","controller","publicKeyJwk"],"properties":{"id":{"type":"string"},"type":{"type":"string","enum":["JsonWebKey2020"]},"controller":{"type":"string","pattern":"^did:web:.*"},"publicKeyJwk":{"type":"object","required":["kty"],"properties":{"kty":{"type":"string","enum":["EC","RSA"]},"crv":{"type":"string"},"x":{"type":"string"},"y":{"type":"string"},"e":{"type":"string"},"n":{"type":"string"},"kid":{"type":"string"},"x5c":{"type":"array","items":{"type":"string"}}},"allOf":[{"if":{"properties":{"kty":{"const":"EC"}}},"then":{"required":["crv","x","y"],"properties":{"crv":{"enum":["P-256","UNKNOWN CURVE"]}}}},{"if":{"properties":{"kty":{"const":"RSA"}}},"then":{"required":["e","n"]}}],"additionalProperties":true}},"additionalProperties":false}},"proof":{"type":"object","properties":{"type":{"type":"string"},"created":{"type":"string","format":"date-time"},"proofPurpose":{"type":"string"},"verificationMethod":{"type":"string"},"jws":{"type":"string"}},"required":["type","created","proofPurpose","verificationMethod","jws"],"additionalProperties":true}},"additionalProperties":false}</value>
+        </var>
+        -->
         <!-- IPS-PILGRIMAGE:XG:DESC#SJBpqw1gDkg= -->
     </variables>
     <steps stopOnError="true">
-        <group title="Get the DIDs" desc="Test getting the DIDs" collapsed="true">
+        <group title="Get the DID" desc="Test getting the DID" collapsed="true">
             <log>"Connecting to:" || $serverRoot || $listCallPath</log>
             <log>$SYSTEM{participantEndpoint}</log>
-            <send id="getDIDjson" desc="Simple GET DIDs" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+            <log>"$DIDschema: " || $DIDschema</log>
+            <send id="getDIDjson" desc="Simple GET DID" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
                 <input name="uri">$serverRoot || $listCallPath</input>
                 <input name="method">"GET"</input>
             </send>
@@ -46,6 +54,12 @@
                 <input name="expectedstring">"200"</input>
             </verify>
             <log>"Response status was:" || $getDIDjson{response}{status}</log>
+
+            <verify desc="Validate JSON" handler="JsonValidator">
+                <input name="json">$getDIDjson{response}{body}</input>
+                <input name="schema">$DIDschema</input>
+            </verify>
+            <log>"JSON was valid...."</log>
 
             <process handler="JSONPointerProcessor" operation="process" output="allVerificationMethods">
                 <input name="content">$getDIDjson{response}{body}</input>

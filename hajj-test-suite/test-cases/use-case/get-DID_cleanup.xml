@@ -1,0 +1,87 @@
+<testcase id="get-DID-keys" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <metadata>
+        <gitb:name>Download DID and get key of one participant.</gitb:name>
+        <gitb:version>1.0</gitb:version>
+        <gitb:description>This test case will loop through the identification methods and find the one required.</gitb:description>
+    </metadata>
+    <actors>
+        <gitb:actor id="simulatedTrustNetworkParticipant"/>
+        <gitb:actor id="trustNetworkParticipant"/>
+        <gitb:actor id="trustNetworkAnchor" role="SUT"/>
+    </actors>
+    <!--
+    -->
+    <imports>
+        <artifact name="DIDschema">schemas/DID list JSON.schema.json</artifact>
+    </imports>
+    <variables>
+        <var type="string" name="serverRoot">
+            <value>https://tng-cdn-dev.who.int</value>
+        </var>
+        <var type="string" name="listCallPath">
+            <value>/v2/trustlist/did.json</value>
+        </var>
+        <var type="string" name="queriedDomain">
+            <value>IPS-PILGRIMAGE</value>
+        </var>
+        <var type="string" name="queriedCountry">
+            <value>XG</value>
+        </var>
+    </variables>
+    <steps stopOnError="true">
+        <group title="Get the DID" desc="Test getting the DID" collapsed="true">
+            <log>"Connecting to:" || $serverRoot || $listCallPath</log>
+            <log>$SYSTEM{participantEndpoint}</log>
+            <send id="getDIDjson" desc="Simple GET DID" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+                <input name="uri">$serverRoot || $listCallPath</input>
+                <input name="method">"GET"</input>
+            </send>
+            <verify id="checkStatusCode" desc="Verify status code is OK" handler="StringValidator">
+                <input name="actualstring">$getDIDjson{response}{status}</input>
+                <input name="expectedstring">"200"</input>
+            </verify>
+            <log>"Response status was:" || $getDIDjson{response}{status}</log>
+
+            <verify desc="Validate JSON" handler="JsonValidator">
+                <input name="json">$getDIDjson{response}{body}</input>
+                <input name="schema">$DIDschema</input>
+            </verify>
+            <log>"JSON was valid."</log>
+
+            <process id="findKeyType" handler="http://host.docker.internal:8181/hajj/services/process?wsdl">
+            <!-- 
+            <process id="findKeyType" handler="$DOMAIN{helperServiceAddress}">
+            -->
+                <operation>processDIDjson</operation>
+                <input name="DIDjson">$getDIDjson{response}{body}</input>
+                <input name="queriedDomain">$queriedDomain</input>
+                <input name="queriedCountry">$queriedCountry</input>
+            </process>
+            <log>"$findKeyType{keyType}: " || $findKeyType{keyType}</log>
+            
+            <send id="getKeysFromGitHub" desc="Crosscheck key" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+                <input name="uri">$serverRoot || "/v2/trustlist/" || $queriedDomain || "/" || $queriedCountry
+                    || "/" || $findKeyType{keyType} || "/did.json"</input>
+                <input name="method">"GET"</input>
+            </send>
+            <verify id="checkStatusCode2" desc="Verify status code is OK" handler="StringValidator">
+                <input name="actualstring">$getKeysFromGitHub{response}{status}</input>
+                <input name="expectedstring">"200"</input>
+            </verify>
+            <log>"Response status was:" || $getKeysFromGitHub{response}{status}</log>
+            <log>"Response key is:" || $getKeysFromGitHub{response}{body}</log>
+        </group>
+    </steps>
+    <output>
+        <success>
+            <default>"Test case completed successfully."</default>
+        </success>
+        <failure>
+            <case>
+                <cond>$STEP_STATUS{getDIDjson} = 'ERROR'</cond>
+                <message>"The GET request failed."</message>
+            </case>
+            <default>"Test case failed. Please check the failed step's report for more information and the test log."</default>
+        </failure>
+    </output>    
+</testcase>
