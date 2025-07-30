@@ -1,171 +1,72 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://smart.who.int/trust/trustlist-embedded.schema.json",
-    "title": "WHO DID Trustlist v2 (Embedded)",
-    "type": "object",
-    "required": [
-        "@context",
-        "id",
-        "verificationMethod"
-    ],
-    "properties": {
-        "@context": {
-            "type": "array",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "https://www.w3.org/ns/did/v1",
-                    "https://w3id.org/security/suites/jws-2020/v1"
-                ]
-            },
-            "minItems": 2
-        },
-        "id": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WHO DID Trust List Entry",
+  "type": "object",
+  "properties": {
+    "@context": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^did:web:.*"
+    },
+    "controller": {
+      "type": "string"
+    },
+    "verificationMethod": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": {
             "type": "string",
-            "pattern": "^did:web:.*"
-        },
-        "controller": {
-            "type": "string",
-            "pattern": "^did:web:.*"
-        },
-        "verificationMethod": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": [
-                    "id",
-                    "type",
-                    "controller",
-                    "publicKeyJwk"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string",
-                        "enum": [
-                            "JsonWebKey2020"
-                        ]
-                    },
-                    "controller": {
-                        "type": "string",
-                        "pattern": "^did:web:.*"
-                    },
-                    "publicKeyJwk": {
-                        "type": "object",
-                        "required": [
-                            "kty"
-                        ],
-                        "properties": {
-                            "kty": {
-                                "type": "string",
-                                "enum": [
-                                    "EC",
-                                    "RSA"
-                                ]
-                            },
-                            "crv": {
-                                "type": "string"
-                            },
-                            "x": {
-                                "type": "string"
-                            },
-                            "y": {
-                                "type": "string"
-                            },
-                            "e": {
-                                "type": "string"
-                            },
-                            "n": {
-                                "type": "string"
-                            },
-                            "kid": {
-                                "type": "string"
-                            },
-                            "x5c": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "allOf": [
-                            {
-                                "if": {
-                                    "properties": {
-                                        "kty": {
-                                            "const": "EC"
-                                        }
-                                    }
-                                },
-                                "then": {
-                                    "required": [
-                                        "crv",
-                                        "x",
-                                        "y"
-                                    ],
-                                    "properties": {
-                                        "crv": {
-                                            "enum": [
-                                                "P-256",
-                                                "UNKNOWN CURVE"
-                                            ]
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "if": {
-                                    "properties": {
-                                        "kty": {
-                                            "const": "RSA"
-                                        }
-                                    }
-                                },
-                                "then": {
-                                    "required": [
-                                        "e",
-                                        "n"
-                                    ]
-                                }
-                            }
-                        ],
-                        "additionalProperties": true
-                    }
-                },
-                "additionalProperties": false
-            }
-        },
-        "proof": {
+            "enum": ["JsonWebKey2020"]
+          },
+          "controller": { "type": "string" },
+          "publicKeyJwk": {
             "type": "object",
             "properties": {
-                "type": {
-                    "type": "string"
-                },
-                "created": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "proofPurpose": {
-                    "type": "string"
-                },
-                "verificationMethod": {
-                    "type": "string"
-                },
-                "jws": {
-                    "type": "string"
-                }
+              "kty": {
+                "type": "string",
+                "enum": ["EC", "RSA"]
+              },
+              "kid": { "type": "string" },
+              "x5c": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "crv": { "type": "string" },
+              "x": { "type": "string" },
+              "y": { "type": "string" },
+              "e": { "type": "string" },
+              "n": { "type": "string" }
             },
-            "required": [
-                "type",
-                "created",
-                "proofPurpose",
-                "verificationMethod",
-                "jws"
-            ],
-            "additionalProperties": true
-        }
-    },
-    "additionalProperties": false
+            "required": ["kty", "kid", "x5c"],
+            "allOf": [
+              {
+                "if": {
+                  "properties": { "kty": { "const": "EC" } }
+                },
+                "then": {
+                  "required": ["crv", "x", "y"]
+                }
+              },
+              {
+                "if": {
+                  "properties": { "kty": { "const": "RSA" } }
+                },
+                "then": {
+                  "required": ["e", "n"]
+                }
+              }
+            ]
+          }
+        },
+        "required": ["id", "type", "controller", "publicKeyJwk"]
+      }
+    }
+  },
+  "required": ["@context", "id", "controller", "verificationMethod"]
 }
