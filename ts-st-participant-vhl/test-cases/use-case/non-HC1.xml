@@ -5,8 +5,8 @@
         <gitb:description>Just a negative test case that fails on QR input as the input string does not start with "HC1".</gitb:description>
     </metadata>
     <actors>
-        <gitb:actor id="qrCodeValidator" />
-        <gitb:actor id="qrCodeHolder" role="SUT" name="Participant B"/>
+        <gitb:actor id="theGDHCNParticipant" role="SUT"  name="Participant B" />
+        <gitb:actor id="validator" name="Validator Backend" />
     </actors>
     <variables>
         <var type="string" name="publicKey">
@@ -22,13 +22,13 @@
         <var type="string" name="inputPIN" />
     </variables>
     <steps>
-        <group stopOnError="true" title="Validate QR code from static input">
+        <group stopOnError="true" title="Send QR" desc="Validate QR code from static input with validator">
             <log>"inputQR:" || $inputQR</log>
             <assign to="validateQRCodeHeaders{Content-Type}">"application/json"</assign>
             <assign to="validationBody">'{"qrCodeContent":"' || $inputQR || '","publicKey":"' || $publicKey || '"}'</assign>
             <log>"$validationBody:" || $validationBody</log>
             <send id="validateQRCode" desc="Call validator with QR body" handler="HttpMessagingV2" 
-                from="qrCodeHolder" to="qrCodeValidator">
+                from="theGDHCNParticipant" to="validator">
                 <input name="uri">$validatorBackendEndpoint</input>
                 <input name="method">"POST"</input>
                 <input name="body">$validationBody</input>
@@ -121,15 +121,6 @@
                 <instruct desc="Deconding QR...">$decodeBase45Description || ":" || $decodeBase45Status</instruct>
                 <instruct desc="Decompressing QR...">$decompressingQRPayloadDescription || ":" || $decompressingQRPayloadStatus</instruct>
                 <instruct desc="Converting CWT...">$convertingPayload2CWTDescription || ":" || $convertingPayload2CWTStatus</instruct>
-                <!--
-                <instruct desc="Extracting CWT claims...">$extractingCWTClaimsDescription || ":" || $extractingCWTClaimsStatus</instruct>
-                <instruct desc="Extracting CountryCode...">$extractingCountryCodeDescription || ":" || $extractingCountryCodeStatus</instruct>
-                <instruct desc="Fetching GDHCN Key...">$fetchingGDHCNKeyDescription || ":" || $fetchingGDHCNKeyStatus</instruct>
-                <instruct desc="Validating signature...">$validatingSignatureDescription || ":" || $validatingSignatureStatus</instruct>
-                <instruct desc="Extracting SHL...">$extractingSHLDescription || ":" || $extractingSHLStatus</instruct>
-                <instruct desc="Deconding QR...">$verifyingSHLDescription || ":" || $verifyingSHLStatus</instruct>
-                <instruct desc="The resulting Smart Health Link is:" mimeType="text/plain">$extractSmartHealthLink</instruct>
-                -->
             </interact>
 
             <verify id="checkDecompressingFailed" desc="Verify decompressing failed" handler="StringValidator">

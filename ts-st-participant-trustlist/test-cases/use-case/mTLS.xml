@@ -1,13 +1,12 @@
 <testcase id="test-mTLS-connection" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <metadata>
-        <gitb:name>Test out mTLS connection between Participant A and Participant B</gitb:name>
+        <gitb:name>Test out mTLS connection between Participant B and secure Trustlist</gitb:name>
         <gitb:version>1.0</gitb:version>
-        <gitb:description>As Participant A I want to download the key of Participant B, whitelist it and connect to his services with my own key.</gitb:description>
+        <gitb:description>As Participant B I want to download the key of Participant A.</gitb:description>
         <gitb:documentation import="docs/mTLS.html" />
     </metadata>
     <actors>
-        <gitb:actor id="simulatedTrustNetworkParticipant"/>
-        <gitb:actor id="trustNetworkAnchor" role="SUT"/>
+        <gitb:actor id="theGDHCNParticipant" role="SUT" name="Participant B"/>
     </actors>
     <variables>
         <var type="string" name="environmentSelector">
@@ -23,7 +22,7 @@
             <log>"$SYSTEM{certPassword}::" || $SYSTEM{certFile}</log>
             <log>"$DOMAIN{secureTrustListDev}::" || $DOMAIN{secureTrustListDev}</log>
         </group>
-        <group title="Participant connecting shared service" desc="Testing out TLS Handshake from helper service" collapsed="true">
+        <group title="Participant connecting" desc="Testing out TLS Handshake from helper service" collapsed="true">
             
             <process id="sendHTTP" handler="http://host.docker.internal:8181/hajj/services/process?wsdl">
                 <operation>connectToTrustlist</operation>

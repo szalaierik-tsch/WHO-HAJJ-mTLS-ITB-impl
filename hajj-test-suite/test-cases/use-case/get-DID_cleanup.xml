@@ -32,7 +32,8 @@
         <group title="Get the DID" desc="Test getting the DID" collapsed="true">
             <log>"Connecting to:" || $serverRoot || $listCallPath</log>
             <log>$SYSTEM{participantEndpoint}</log>
-            <send id="getDIDjson" desc="Simple GET DID" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+            <send id="getDIDjson" desc="Simple GET DID" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" 
+                handler="HttpMessagingV2">
                 <input name="uri">$serverRoot || $listCallPath</input>
                 <input name="method">"GET"</input>
             </send>
@@ -48,10 +49,7 @@
             </verify>
             <log>"JSON was valid."</log>
 
-            <process id="findKeyType" handler="http://host.docker.internal:8181/hajj/services/process?wsdl">
-            <!-- 
             <process id="findKeyType" handler="$DOMAIN{helperServiceAddress}">
-            -->
                 <operation>processDIDjson</operation>
                 <input name="DIDjson">$getDIDjson{response}{body}</input>
                 <input name="queriedDomain">$queriedDomain</input>
@@ -59,7 +57,8 @@
             </process>
             <log>"$findKeyType{keyType}: " || $findKeyType{keyType}</log>
             
-            <send id="getKeysFromGitHub" desc="Crosscheck key" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+            <send id="getKeysFromGitHub" desc="Crosscheck key" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" 
+                handler="HttpMessagingV2">
                 <input name="uri">$serverRoot || "/v2/trustlist/" || $queriedDomain || "/" || $queriedCountry
                     || "/" || $findKeyType{keyType} || "/did.json"</input>
                 <input name="method">"GET"</input>

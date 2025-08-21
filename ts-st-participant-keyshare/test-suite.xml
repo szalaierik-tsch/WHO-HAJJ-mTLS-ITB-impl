@@ -6,33 +6,4 @@
 		<gitb:description>Uploading the key of the Participant to the GDHCN. At the moment this is part of the Onboarding</gitb:description>
 		<gitb:documentation import="docs/mTLS.html" />
 	</metadata>
-	<!--
-	<actors>
-		<gitb:actor id="simulatedTrustNetworkParticipant">
-			<gitb:name>Trust Network Participant simulated by the Test Bed</gitb:name>
-			<gitb:desc>The Interoperability Test Bed is assumed to be an actor of the Trust Network thus is a simulated participant.</gitb:desc>
-		</gitb:actor>
-		<gitb:actor id="trustNetworkParticipant">
-			<gitb:name>Trust Network Participant B</gitb:name>
-			<gitb:desc>This is the Trust Network Participant who is providing services to other participants and expects them to connect. His access details are shared through the Trust Network.</gitb:desc>
-		</gitb:actor>
-		<gitb:actor id="trustNetworkAnchor">
-			<gitb:name>Trust Network Anchor</gitb:name>
-			<gitb:desc>Trust Network Anchor which receives and distributes PKI-material within a Trust Network. Also called the Gateway of the key network to manage keys. Also called Trust Network Gateway (TNG).</gitb:desc>
-		</gitb:actor>
-		<gitb:actor id="qrCodeHolder">
-			<gitb:name>QR Code Holder</gitb:name>
-			<gitb:desc>A person who holds a QR code that should be validated by the GDHCN backend.</gitb:desc>
-		</gitb:actor>
-		<gitb:actor id="qrCodeValidator">
-			<gitb:name>QR Code Validator</gitb:name>
-			<gitb:desc>A (backend) system that validates QR codes.</gitb:desc>
-		</gitb:actor>
-	</actors>
-
-	<testcase id="get-DID-keys"/>
-	<testcase id="get-DID-keys-2"/>
-	<testcase id="test-mTLS-connection"/>
-	<testcase id="validate-QR-input" />
-	-->
 </testsuite>

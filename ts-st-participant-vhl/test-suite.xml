@@ -7,13 +7,12 @@
 		<gitb:documentation import="docs/mTLS.html" />
 	</metadata>
 	<actors>
-		<gitb:actor id="qrCodeHolder">
-			<gitb:name>QR Code Holder</gitb:name>
-			<gitb:desc>A person who holds a QR code that should be validated by the GDHCN backend.</gitb:desc>
+		<gitb:actor id="theGDHCNParticipant">
+			<gitb:name>GDHCN Participant</gitb:name>
+			<gitb:desc>A GDHCN participant organization.</gitb:desc>
 		</gitb:actor>
-		<gitb:actor id="qrCodeValidator">
-			<gitb:name>QR Code Validator</gitb:name>
-			<gitb:desc>A (backend) system that validates QR codes.</gitb:desc>
+		<gitb:actor id="validator">
+			<gitb:name>GDHCN Validator Backend</gitb:name>
 		</gitb:actor>
 	</actors>
 	

@@ -5,8 +5,8 @@
         <gitb:description>This will guide the tester through a QR Code validation given as a String input using the Malaysian validator backend.</gitb:description>
     </metadata>
     <actors>
-        <gitb:actor id="qrCodeValidator"/>
-        <gitb:actor id="qrCodeHolder" role="SUT"/>
+        <gitb:actor id="theGDHCNParticipant" role="SUT"  name="Participant B" />
+        <gitb:actor id="validator" name="Validator Backend" />
     </actors>
     <variables>
         <var type="string" name="publicKey">
@@ -20,7 +20,7 @@
         <var type="string" name="inputPIN" />
     </variables>
     <steps>
-        <group stopOnError="true" title="Validate QR code from manual input">
+        <group stopOnError="true" title="QR Input" desc="Validate QR code from manual input">
             <interact hidden="true" inputTitle="Enter the QR code you want to validate">
                 <request desc="QR Code"  inputType="MULTILINE_TEXT">$inputQR</request>
             </interact>
@@ -28,8 +28,8 @@
             <assign to="validateQRCodeHeaders{Content-Type}">"application/json"</assign>
             <assign to="validationBody">'{"qrCodeContent":"' || $inputQR || '","publicKey":"' || $publicKey || '"}'</assign>
             <log>"$validationBody:" || $validationBody</log>
-            <send id="validateQRCode" desc="Call validator with QR body" handler="HttpMessagingV2" 
-                from="qrCodeHolder" to="qrCodeValidator">
+            <send id="validateQRCode" desc="Call validator with QR body" handler="HttpMessagingV2"
+                from="theGDHCNParticipant" to="validator">
                 <input name="uri">$validatorBackendEndpoint</input>
                 <input name="method">"POST"</input>
                 <input name="body">$validationBody</input>
@@ -37,7 +37,7 @@
             </send>
         </group>
 
-        <group hidden="true" desc="Extract validation results and display">
+        <group hidden="true" title="Extract status" desc="Extract validation results and display">
             <log>"$validateQRCode{response}{status}" || $validateQRCode{response}{status}</log>
             <log>"$validateQRCode{response}{body}" || $validateQRCode{response}{body}</log>
             <process handler="JSONPointerProcessor" operation="process" output="decodeBase45Description">
@@ -131,19 +131,19 @@
                 <instruct desc="The resulting Smart Health Link is:" mimeType="text/plain">$extractSmartHealthLink</instruct>
             </interact>
         </group>
-        <group title="Entering pin">
+        <group title="Entering pin" desc="Asking tester to enter pin">
             <interact hidden="true">
                 <request desc="Enter the PIN code to access the report">$inputPIN</request>
             </interact>
         </group>
 
-        <group stopOnError="true" title="Enter PIN and get the links">
+        <group stopOnError="true" title="Get links" desc="Send PIN and get the links">
 
             <assign to="sendPinHeaders{Content-Type}">"application/json"</assign>
             <assign to="sendPinBody">'{"recipient":"https://gdhcn-validator.net/","passcode":"' || $inputPIN || '"}'</assign>
             <log>"sendPinBody:" || $sendPinBody</log>
-            <send id="sendPin" desc="Call validator with PIN" handler="HttpMessagingV2" 
-                from="qrCodeHolder" to="qrCodeValidator">
+            <send id="sendPin" desc="Call validator with PIN" handler="HttpMessagingV2"
+                from="theGDHCNParticipant" to="validator">
                 <input name="uri">$extractSmartHealthLink</input>
                 <input name="method">"POST"</input>
                 <input name="body">$sendPinBody</input>
@@ -172,19 +172,19 @@
             <log>"$detachedContentLink:" || $detachedContentLink</log>
         </group>
 
-        <group title="Get the report documents">
-            <send id="getPDFreport" desc="Get the PDF report" handler="HttpMessagingV2" 
-                from="qrCodeHolder" to="qrCodeValidator">
+        <group title="Reports" desc="Get the report documents">
+            <send id="getPDFreport" desc="Get the PDF report" handler="HttpMessagingV2"
+                from="theGDHCNParticipant" to="validator">
                 <input name="uri">$reportLink</input>
                 <input name="method">"GET"</input>
             </send>
-            <send id="getJSONreport" desc="Get the JSON report" handler="HttpMessagingV2" 
-                from="qrCodeHolder" to="qrCodeValidator">
+            <send id="getJSONreport" desc="Get the JSON report" handler="HttpMessagingV2"
+                from="theGDHCNParticipant" to="validator">
                 <input name="uri">$jsonContentLink</input>
                 <input name="method">"GET"</input>
             </send>
-            <send id="getDetachedContent" desc="Get the PDF report" handler="HttpMessagingV2" 
-                from="qrCodeHolder" to="qrCodeValidator">
+            <send id="getDetachedContent" desc="Get the PDF report" handler="HttpMessagingV2"
+                from="theGDHCNParticipant" to="validator">
                 <input name="uri">$detachedContentLink</input>
                 <input name="method">"GET"</input>
             </send>

@@ -5,11 +5,9 @@
         <gitb:description>This test case will loop through the identification methods and find the one required.</gitb:description>
     </metadata>
     <actors>
-        <gitb:actor id="simulatedTrustNetworkParticipant"/>
-        <gitb:actor id="trustNetworkAnchor" role="SUT"/>
+        <gitb:actor id="theGDHCNParticipant" role="SUT" name="Participant B"/>
+        <gitb:actor id="trustNetwork" name="GDHCN Backend"/>
     </actors>
-    <!--
-    -->
     <imports>
         <artifact name="DIDschema">schemas/DID list JSON.schema.json</artifact>
     </imports>
@@ -31,7 +29,8 @@
         <group title="Get the DID" desc="Test getting the DID" collapsed="true">
             <log>"Connecting to:" || $serverRoot || $listCallPath</log>
             <log>$SYSTEM{participantEndpoint}</log>
-            <send id="getDIDjson" desc="Simple GET DID" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+            <send id="getDIDjson" desc="Simple GET DID" handler="HttpMessagingV2"
+                from="theGDHCNParticipant" to="trustNetwork">
                 <input name="uri">$serverRoot || $listCallPath</input>
                 <input name="method">"GET"</input>
             </send>
@@ -47,7 +46,7 @@
             </verify>
             <log>"JSON was valid."</log>
 
-            <process id="findKeyType" handler="http://host.docker.internal:8181/hajj/services/process?wsdl">
+            <process id="findKeyType" handler="$DOMAIN{helperServiceAddress}">
                 <operation>processDIDjson</operation>
                 <input name="DIDjson">$getDIDjson{response}{body}</input>
                 <input name="queriedDomain">$queriedDomain</input>
@@ -55,7 +54,8 @@
             </process>
             <log>"$findKeyType{keyType}: " || $findKeyType{keyType}</log>
             
-            <send id="getKeysFromGitHub" desc="Crosscheck key" from="simulatedTrustNetworkParticipant" to="trustNetworkAnchor" handler="HttpMessagingV2">
+            <send id="getKeysFromGitHub" desc="Crosscheck key" handler="HttpMessagingV2"
+                from="theGDHCNParticipant" to="trustNetwork">
                 <input name="uri">$serverRoot || "/v2/trustlist/" || $queriedDomain || "/" || $queriedCountry
                     || "/" || $findKeyType{keyType} || "/did.json"</input>
                 <input name="method">"GET"</input>
