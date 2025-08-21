@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite id="ts-st-participant-onboarding" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<metadata>
+		<gitb:name>[Placeholder] Participant Onboarding</gitb:name>
+		<gitb:version>1.0</gitb:version>
+		<gitb:description>This suite will cover the Onboarding process for a Participant of the GDHCN network. Right now this process has too many manual steps to be implemented in ITB, thus coming only later.</gitb:description>
+		<gitb:documentation import="docs/mTLS.html" />
+	</metadata>
+</testsuite>

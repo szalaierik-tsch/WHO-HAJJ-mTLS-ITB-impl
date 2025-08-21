@@ -1,0 +1,216 @@
+<testcase id="manually-validate-QR-input" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <metadata>
+        <gitb:name>Manual QR Code validation with the Validator</gitb:name>
+        <gitb:version>1.0</gitb:version>
+        <gitb:description>This will guide the tester through a QR Code validation given as a String input using the Malaysian validator backend.</gitb:description>
+    </metadata>
+    <actors>
+        <gitb:actor id="qrCodeValidator"/>
+        <gitb:actor id="qrCodeHolder" role="SUT"/>
+    </actors>
+    <variables>
+        <var type="string" name="publicKey">
+            <!--This key is used to access the backend services for validation.-->
+            <value>-----BEGIN CERTIFICATE-----\nMIICLjCCAdOgAwIBAgIUWh6ECUYZaslC/Ho8dKULnzn/5t8wCgYIKoZIzj0EAwIw\nfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29yMRUwEwYDVQQHDAxLdWFs\nYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQwEgYDVQQLDAtFbmdpbmVl\ncmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMB4XDTI0MDExOTEwNTYyNVoX\nDTI1MDExODEwNTYyNVowfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29y\nMRUwEwYDVQQHDAxLdWFsYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQw\nEgYDVQQLDAtFbmdpbmVlcmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7reC2FUoGVGzvByhncV3q6XJksKxjJ1o\nXMlB6CzVVVJbnP0r1KJfr2ubOk81em/bYcjbhU1dziirVOB9RWxtUqMxMC8wDgYD\nVR0PAQH/BAQDAgeAMB0GA1UdDgQWBBTx38qzxO0haO3lqcxPY8X5wDNxxjAKBggq\nhkjOPQQDAgNJADBGAiEA+beTg/VOtm4oInJleO7hXnosUpQbF9gOO4TQD8iBX9wC\nIQDq50Faaah56SsFyY2DE2QZ8fDBPH02msLz7S1XbVyu/A==\n-----END CERTIFICATE-----\n</value>
+        </var>
+        <var type="string" name="validatorBackendEndpoint">
+            <value>https://api.gdhcn-validator.net/v2/validateCwt</value>
+        </var>
+        <var type="string" name="inputQR" />
+        <var type="string" name="inputPIN" />
+    </variables>
+    <steps>
+        <group stopOnError="true" title="Validate QR code from manual input">
+            <interact hidden="true" inputTitle="Enter the QR code you want to validate">
+                <request desc="QR Code"  inputType="MULTILINE_TEXT">$inputQR</request>
+            </interact>
+            <log>"inputQR:" || $inputQR</log>
+            <assign to="validateQRCodeHeaders{Content-Type}">"application/json"</assign>
+            <assign to="validationBody">'{"qrCodeContent":"' || $inputQR || '","publicKey":"' || $publicKey || '"}'</assign>
+            <log>"$validationBody:" || $validationBody</log>
+            <send id="validateQRCode" desc="Call validator with QR body" handler="HttpMessagingV2" 
+                from="qrCodeHolder" to="qrCodeValidator">
+                <input name="uri">$validatorBackendEndpoint</input>
+                <input name="method">"POST"</input>
+                <input name="body">$validationBody</input>
+                <input name="headers">$validateQRCodeHeaders</input>
+            </send>
+        </group>
+
+        <group hidden="true" desc="Extract validation results and display">
+            <log>"$validateQRCode{response}{status}" || $validateQRCode{response}{status}</log>
+            <log>"$validateQRCode{response}{body}" || $validateQRCode{response}{body}</log>
+            <process handler="JSONPointerProcessor" operation="process" output="decodeBase45Description">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/1/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="decodeBase45Status">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/1/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="decompressingQRPayloadDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/2/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="decompressingQRPayloadStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/2/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="convertingPayload2CWTDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/3/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="convertingPayload2CWTStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/3/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCWTClaimsDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/4/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCWTClaimsStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/4/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCountryCodeDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/5/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCountryCodeStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/5/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="fetchingGDHCNKeyDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/6/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="fetchingGDHCNKeyStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/6/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="validatingSignatureDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/7/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="validatingSignatureStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/7/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingSHLDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/8/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingSHLStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/8/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="verifyingSHLDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/9/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="verifyingSHLStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/9/status"</input>
+            </process>
+
+            <process handler="JSONPointerProcessor" operation="process" output="extractSmartHealthLink">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/shLinkContent/url"</input>
+            </process>
+
+            <interact inputTitle="QR validation results">
+                <instruct desc="Deconding QR...">$decodeBase45Description || ":" || $decodeBase45Status</instruct>
+                <instruct desc="Decompressing QR...">$decompressingQRPayloadDescription || ":" || $decompressingQRPayloadStatus</instruct>
+                <instruct desc="Converting CWT...">$convertingPayload2CWTDescription || ":" || $convertingPayload2CWTStatus</instruct>
+                <instruct desc="Extracting CWT claims...">$extractingCWTClaimsDescription || ":" || $extractingCWTClaimsStatus</instruct>
+                <instruct desc="Extracting CountryCode...">$extractingCountryCodeDescription || ":" || $extractingCountryCodeStatus</instruct>
+                <instruct desc="Fetching GDHCN Key...">$fetchingGDHCNKeyDescription || ":" || $fetchingGDHCNKeyStatus</instruct>
+                <instruct desc="Validating signature...">$validatingSignatureDescription || ":" || $validatingSignatureStatus</instruct>
+                <instruct desc="Extracting SHL...">$extractingSHLDescription || ":" || $extractingSHLStatus</instruct>
+                <instruct desc="Deconding QR...">$verifyingSHLDescription || ":" || $verifyingSHLStatus</instruct>
+                <instruct desc="The resulting Smart Health Link is:" mimeType="text/plain">$extractSmartHealthLink</instruct>
+            </interact>
+        </group>
+        <group title="Entering pin">
+            <interact hidden="true">
+                <request desc="Enter the PIN code to access the report">$inputPIN</request>
+            </interact>
+        </group>
+
+        <group stopOnError="true" title="Enter PIN and get the links">
+
+            <assign to="sendPinHeaders{Content-Type}">"application/json"</assign>
+            <assign to="sendPinBody">'{"recipient":"https://gdhcn-validator.net/","passcode":"' || $inputPIN || '"}'</assign>
+            <log>"sendPinBody:" || $sendPinBody</log>
+            <send id="sendPin" desc="Call validator with PIN" handler="HttpMessagingV2" 
+                from="qrCodeHolder" to="qrCodeValidator">
+                <input name="uri">$extractSmartHealthLink</input>
+                <input name="method">"POST"</input>
+                <input name="body">$sendPinBody</input>
+                <input name="headers">$sendPinHeaders</input>
+            </send>
+        </group>
+
+        <group hidden="true" desc="Extract links from PIN response">
+            <log>"$sendPin{response}{status}:" || $sendPin{response}{status}</log>
+            <log>"$sendPin{response}{body}:" || $sendPin{response}{body}</log>
+        
+            <process handler="JSONPointerProcessor" operation="process" output="reportLink">
+                <input name="content">$sendPin{response}{body}</input>
+                <input name="pointer">"/entry/0/resource/content/0/attachment/url"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="jsonContentLink">
+                <input name="content">$sendPin{response}{body}</input>
+                <input name="pointer">"/entry/1/resource/content/0/attachment/url"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="detachedContentLink">
+                <input name="content">$sendPin{response}{body}</input>
+                <input name="pointer">"/entry/2/resource/content/0/attachment/url"</input>
+            </process>
+            <log>"$reportLink:" || $reportLink</log>
+            <log>"$jsonContentLink:" || $jsonContentLink</log>
+            <log>"$detachedContentLink:" || $detachedContentLink</log>
+        </group>
+
+        <group title="Get the report documents">
+            <send id="getPDFreport" desc="Get the PDF report" handler="HttpMessagingV2" 
+                from="qrCodeHolder" to="qrCodeValidator">
+                <input name="uri">$reportLink</input>
+                <input name="method">"GET"</input>
+            </send>
+            <send id="getJSONreport" desc="Get the JSON report" handler="HttpMessagingV2" 
+                from="qrCodeHolder" to="qrCodeValidator">
+                <input name="uri">$jsonContentLink</input>
+                <input name="method">"GET"</input>
+            </send>
+            <send id="getDetachedContent" desc="Get the PDF report" handler="HttpMessagingV2" 
+                from="qrCodeHolder" to="qrCodeValidator">
+                <input name="uri">$detachedContentLink</input>
+                <input name="method">"GET"</input>
+            </send>
+
+            <log>"$getJSONreport{response}{body}" || $getJSONreport{response}{body}</log>
+            <log>"$getDetachedContent{response}{body}" || $getDetachedContent{response}{body}</log>
+            <interact hidden="true" inputTitle="Status of the downloaded documents">
+                <instruct desc="Downloading the PDF report stauts: ">$getPDFreport{response}{status}</instruct>
+                <instruct desc="The PDF file: " mimeType="application/pdf">$getPDFreport{response}{body}</instruct>
+                <instruct desc="Downloading the JSON report status: ">$getJSONreport{response}{status}</instruct>
+                <instruct desc="The JSON file: " mimeType="application/json">$getJSONreport{response}{body}</instruct>
+                <instruct desc="Downloading the detached report status: ">$getDetachedContent{response}{status}</instruct>
+                <instruct desc="The detached JSON file: " mimeType="application/json">$getDetachedContent{response}{body}</instruct>
+            </interact>
+        </group>
+    </steps>
+    <output>
+        <success>
+            <default>"Test case completed successfully."</default>
+        </success>
+        <failure>
+            <case>
+                <cond>$STEP_STATUS{validateQRCode} = 'ERROR'</cond>
+                <message>"The validate POST request failed."</message>
+            </case>
+            <default>"Test case failed. Please check the failed step's report for more information and the test log."</default>
+        </failure>
+    </output>    
+</testcase>

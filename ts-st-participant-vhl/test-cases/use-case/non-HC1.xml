@@ -1,0 +1,154 @@
+<testcase id="validate-non-HC1-failure" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <metadata>
+        <gitb:name>NON-HC1 QR inputPIN</gitb:name>
+        <gitb:version>1.0</gitb:version>
+        <gitb:description>Just a negative test case that fails on QR input as the input string does not start with "HC1".</gitb:description>
+    </metadata>
+    <actors>
+        <gitb:actor id="qrCodeValidator" />
+        <gitb:actor id="qrCodeHolder" role="SUT" name="Participant B"/>
+    </actors>
+    <variables>
+        <var type="string" name="publicKey">
+            <!--This key is used to access the backend services for validation.-->
+            <value>-----BEGIN CERTIFICATE-----\nMIICLjCCAdOgAwIBAgIUWh6ECUYZaslC/Ho8dKULnzn/5t8wCgYIKoZIzj0EAwIw\nfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29yMRUwEwYDVQQHDAxLdWFs\nYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQwEgYDVQQLDAtFbmdpbmVl\ncmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMB4XDTI0MDExOTEwNTYyNVoX\nDTI1MDExODEwNTYyNVowfTELMAkGA1UEBhMCTVkxETAPBgNVBAgMCFNlbGFuZ29y\nMRUwEwYDVQQHDAxLdWFsYSBMdW1wdXIxFDASBgNVBAoMC0VudG9tbyBMYWJzMRQw\nEgYDVQQLDAtFbmdpbmVlcmluZzEYMBYGA1UEAwwPTmF0aW9uWEFfVE5QX1VQMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7reC2FUoGVGzvByhncV3q6XJksKxjJ1o\nXMlB6CzVVVJbnP0r1KJfr2ubOk81em/bYcjbhU1dziirVOB9RWxtUqMxMC8wDgYD\nVR0PAQH/BAQDAgeAMB0GA1UdDgQWBBTx38qzxO0haO3lqcxPY8X5wDNxxjAKBggq\nhkjOPQQDAgNJADBGAiEA+beTg/VOtm4oInJleO7hXnosUpQbF9gOO4TQD8iBX9wC\nIQDq50Faaah56SsFyY2DE2QZ8fDBPH02msLz7S1XbVyu/A==\n-----END CERTIFICATE-----\n</value>
+        </var>
+        <var type="string" name="validatorBackendEndpoint">
+            <value>https://api.gdhcn-validator.net/v2/validateCwt</value>
+        </var>
+        <var type="string" name="inputQR" >
+            <value>6BF2Y2:9Q6WQC403DEJMF7+0E%3:8NBGGLVU8+A+S2FQR5Q91P985J4X9TMK3F97.ST+KI:P2BR9YBHOFOPM68FN L 24--U8-0OJFSFI5BFT54PDWVGN-BOFOV0HFH:NRK8S.DMMS7$2I*H:7NT4GZ8R$%N$2UYOTU+NA/DK 0CATN5T6N1M7N SJKUS-KTHBTS.LDZ00YJP2FY%HTD5D:B POJ3505WRJC4%I*G1+NB36B.6WBWPHOMUYAH/S:82SGMMDJLOEZ47PGH6N0YO0W*0PC2IVS0EG WCP6GNLARXHUM9*ZJ93JMDKNC5BWCJZF+4P3-FNI80PMN8JD3MNCNX/P2KRAQSZ CCNHDCQWJNCBL591U4NUJ4XF1UFIWTU*4T*-90MRO.S%YKPNHW Q/TFT1B*D1ZGT/80P89-8AS92%Q8EEMZK9MBR.RQT.3B/AA4UJRA*R2IPICS8412O:B1T0WLJ4*KQHCV7O9SEJ2ACNDI6BA80W1K3AHUXUT-HGGPG6O1%2JX38OT-B2$RS*0IV12BHD+3M0ANR-HF9RXAVPASN:39+5E6G$1LN2EB*HR0O WVR8OE3AA6W%CBT5G.ZU 03GKFX+EWOR SJ:VO DTI.HTXT97Q 2EP7WN3U:CV.BSQRK</value>
+        </var>
+        <var type="string" name="inputPIN" />
+    </variables>
+    <steps>
+        <group stopOnError="true" title="Validate QR code from static input">
+            <log>"inputQR:" || $inputQR</log>
+            <assign to="validateQRCodeHeaders{Content-Type}">"application/json"</assign>
+            <assign to="validationBody">'{"qrCodeContent":"' || $inputQR || '","publicKey":"' || $publicKey || '"}'</assign>
+            <log>"$validationBody:" || $validationBody</log>
+            <send id="validateQRCode" desc="Call validator with QR body" handler="HttpMessagingV2" 
+                from="qrCodeHolder" to="qrCodeValidator">
+                <input name="uri">$validatorBackendEndpoint</input>
+                <input name="method">"POST"</input>
+                <input name="body">$validationBody</input>
+                <input name="headers">$validateQRCodeHeaders</input>
+            </send>
+        </group>
+
+        <group hidden="true" desc="Extract validation results and display">
+            <log>"$validateQRCode{response}{status}" || $validateQRCode{response}{status}</log>
+            <log>"$validateQRCode{response}{body}" || $validateQRCode{response}{body}</log>
+            <process handler="JSONPointerProcessor" operation="process" output="decodeBase45Description">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/1/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="decodeBase45Status">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/1/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="decompressingQRPayloadDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/2/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="decompressingQRPayloadStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/2/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="convertingPayload2CWTDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/3/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="convertingPayload2CWTStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/3/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCWTClaimsDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/4/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCWTClaimsStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/4/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCountryCodeDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/5/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingCountryCodeStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/5/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="fetchingGDHCNKeyDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/6/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="fetchingGDHCNKeyStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/6/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="validatingSignatureDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/7/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="validatingSignatureStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/7/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingSHLDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/8/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="extractingSHLStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/8/status"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="verifyingSHLDescription">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/9/description"</input>
+            </process>
+            <process handler="JSONPointerProcessor" operation="process" output="verifyingSHLStatus">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/validationStatus/9/status"</input>
+            </process>
+
+            <process handler="JSONPointerProcessor" operation="process" output="extractSmartHealthLink">
+                <input name="content">$validateQRCode{response}{body}</input>
+                <input name="pointer">"/shLinkContent/url"</input>
+            </process>
+
+            <interact inputTitle="QR validation results">
+                <instruct desc="Deconding QR...">$decodeBase45Description || ":" || $decodeBase45Status</instruct>
+                <instruct desc="Decompressing QR...">$decompressingQRPayloadDescription || ":" || $decompressingQRPayloadStatus</instruct>
+                <instruct desc="Converting CWT...">$convertingPayload2CWTDescription || ":" || $convertingPayload2CWTStatus</instruct>
+                <!--
+                <instruct desc="Extracting CWT claims...">$extractingCWTClaimsDescription || ":" || $extractingCWTClaimsStatus</instruct>
+                <instruct desc="Extracting CountryCode...">$extractingCountryCodeDescription || ":" || $extractingCountryCodeStatus</instruct>
+                <instruct desc="Fetching GDHCN Key...">$fetchingGDHCNKeyDescription || ":" || $fetchingGDHCNKeyStatus</instruct>
+                <instruct desc="Validating signature...">$validatingSignatureDescription || ":" || $validatingSignatureStatus</instruct>
+                <instruct desc="Extracting SHL...">$extractingSHLDescription || ":" || $extractingSHLStatus</instruct>
+                <instruct desc="Deconding QR...">$verifyingSHLDescription || ":" || $verifyingSHLStatus</instruct>
+                <instruct desc="The resulting Smart Health Link is:" mimeType="text/plain">$extractSmartHealthLink</instruct>
+                -->
+            </interact>
+
+            <verify id="checkDecompressingFailed" desc="Verify decompressing failed" handler="StringValidator">
+                <input name="actualstring">$decompressingQRPayloadStatus</input>
+                <input name="expectedstring">"FAILED"</input>
+            </verify>
+        </group>
+
+    </steps>
+    <output>
+        <success>
+            <default>"Test case completed successfully."</default>
+        </success>
+        <failure>
+            <case>
+                <cond>$STEP_STATUS{validateQRCode} = 'ERROR'</cond>
+                <message>"The validate POST request failed."</message>
+            </case>
+            <default>"Test case failed. Please check the failed step's report for more information and the test log."</default>
+        </failure>
+    </output>    
+</testcase>

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WHO DID Trust List Entry",
+  "type": "object",
+  "properties": {
+    "@context": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^did:web:.*"
+    },
+    "controller": {
+      "type": "string"
+    },
+    "verificationMethod": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["JsonWebKey2020"]
+          },
+          "controller": { "type": "string" },
+          "publicKeyJwk": {
+            "type": "object",
+            "properties": {
+              "kty": {
+                "type": "string",
+                "enum": ["EC", "RSA"]
+              },
+              "kid": { "type": "string" },
+              "x5c": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "crv": { "type": "string" },
+              "x": { "type": "string" },
+              "y": { "type": "string" },
+              "e": { "type": "string" },
+              "n": { "type": "string" }
+            },
+            "required": ["kty", "kid", "x5c"],
+            "allOf": [
+              {
+                "if": {
+                  "properties": { "kty": { "const": "EC" } }
+                },
+                "then": {
+                  "required": ["crv", "x", "y"]
+                }
+              },
+              {
+                "if": {
+                  "properties": { "kty": { "const": "RSA" } }
+                },
+                "then": {
+                  "required": ["e", "n"]
+                }
+              }
+            ]
+          }
+        },
+        "required": ["id", "type", "controller", "publicKeyJwk"]
+      }
+    }
+  },
+  "required": ["@context", "id", "controller", "verificationMethod"]
+}

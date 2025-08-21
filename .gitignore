@@ -30,3 +30,4 @@ replay_pid*
 /hajj-helper/*response-body.txt
 /hajj-test-suite.zip
 /hajj-helper/target
+/*.zip

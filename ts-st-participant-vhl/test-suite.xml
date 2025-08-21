@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite id="ts-st-participant-vhl" xmlns="http://www.gitb.com/tdl/v1/" xmlns:gitb="http://www.gitb.com/core/v1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<metadata>
+		<gitb:name>Participant utilizing VHL</gitb:name>
+		<gitb:version>1.0</gitb:version>
+		<gitb:description></gitb:description>
+		<gitb:documentation import="docs/mTLS.html" />
+	</metadata>
+	<actors>
+		<gitb:actor id="qrCodeHolder">
+			<gitb:name>QR Code Holder</gitb:name>
+			<gitb:desc>A person who holds a QR code that should be validated by the GDHCN backend.</gitb:desc>
+		</gitb:actor>
+		<gitb:actor id="qrCodeValidator">
+			<gitb:name>QR Code Validator</gitb:name>
+			<gitb:desc>A (backend) system that validates QR codes.</gitb:desc>
+		</gitb:actor>
+	</actors>
+	
+	<testcase id="manually-validate-QR-input" />
+	<testcase id="validate-non-HC1-failure" />
+</testsuite>
